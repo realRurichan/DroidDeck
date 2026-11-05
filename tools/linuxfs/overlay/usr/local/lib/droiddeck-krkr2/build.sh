@@ -18,7 +18,7 @@ checkout() {
     test "$(git -C "$1" rev-parse HEAD)" = "$3"
 }
 echo '== STEP Krkr2 source and build tools'
-checkout "$work/source" https://github.com/2468785842/krkr2.git "$KRKR2_COMMIT"
+checkout "$work/source" "$KRKR2_REPOSITORY" "$KRKR2_COMMIT"
 checkout "$work/vcpkg" https://github.com/microsoft/vcpkg.git "$VCPKG_COMMIT"
 git -C "$work/vcpkg" fetch --unshallow origin "$VCPKG_COMMIT"
 python3 "$here/prepare.py" "$work/source"
@@ -33,12 +33,11 @@ python3 -m venv "$work/tools"
 export PATH="$work/tools/bin:$PATH" VCPKG_ROOT="$work/vcpkg"
 bash "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 echo '== STEP Build Krkr2 dependencies and engine'
-# Legacy TJS string conversions also rely on null-this checks in the callee.
 cmake -S "$work/source" -B "$work/build" -G Ninja -DLINUX=ON \
     -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=OFF -DBUILD_TOOLS=OFF \
     -DCMAKE_C_FLAGS_RELEASE='-O3 -DNDEBUG -g1' \
     -DCMAKE_CXX_FLAGS_RELEASE='-O3 -DNDEBUG -g1' \
-    -DCMAKE_CXX_FLAGS=-fno-delete-null-pointer-checks \
+    -DKRKR2_ENABLE_PSBFILE_SMOKE=ON \
     -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld \
     -DVCPKG_TARGET_TRIPLET="$arch-linux-release"
 cmake --build "$work/build" --target krkr2 --parallel "${JOBS:-2}"
@@ -52,4 +51,4 @@ objcopy --add-gnu-debuglink="$work/krkr2.debug" "$out/krkr2"
 mkdir -p "$out/licenses"
 cp "$work/source/LICENSE" "$out/licenses/krkr2.txt"
 (cd "$work/build/vcpkg_installed" && find . -path '*/share/*/copyright' -type f -exec cp --parents '{}' "$out/licenses/" \;)
-printf 'Source: https://github.com/2468785842/krkr2\nCommit: %s\nvcpkg: %s\n' "$KRKR2_COMMIT" "$VCPKG_COMMIT" > "$out/BUILD.txt"
+printf 'Source: %s\nCommit: %s\nvcpkg: %s\n' "$KRKR2_REPOSITORY" "$KRKR2_COMMIT" "$VCPKG_COMMIT" > "$out/BUILD.txt"

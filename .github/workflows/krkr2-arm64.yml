@@ -19,7 +19,9 @@ jobs:
         with:
           path: ${{ runner.temp }}/vcpkg-cache
           key: krkr2-arm64-${{ hashFiles('tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/source.env') }}-${{ github.run_id }}
-          restore-keys: krkr2-arm64-${{ hashFiles('tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/source.env') }}-
+          restore-keys: |
+            krkr2-arm64-${{ hashFiles('tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/source.env') }}-
+            krkr2-arm64-
       - name: Install build dependencies
         run: |
           sudo apt-get update -q
@@ -40,6 +42,8 @@ jobs:
           ALSOFT_DRIVERS: 'null'
         run: |
           set -euo pipefail
+          "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -N -R '^psbfile-runtime$'
+          xvfb-run -a "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -R '^psbfile-runtime$' --output-on-failure --no-tests=error
           game="$RUNNER_TEMP/游戏 'launch test'"
           mkdir -p "$game"
           printf '%s\n' 'Debug.message("DROIDDECK_KRKR2_SMOKE_OK");' 'System.exit();' > "$game/startup.tjs"
@@ -70,6 +74,7 @@ jobs:
         with:
           name: krkr2-build-logs
           path: |
+            ${{ runner.temp }}/krkr2-build/build/Testing/Temporary/LastTest.log
             ${{ runner.temp }}/krkr2-smoke.log
             ${{ runner.temp }}/krkr2-archive-smoke.log
             ${{ runner.temp }}/krkr2-build/build/CMakeFiles/CMakeConfigureLog.yaml
