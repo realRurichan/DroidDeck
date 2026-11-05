@@ -35,13 +35,17 @@ bash "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 echo '== STEP Build Krkr2 dependencies and engine'
 cmake -S "$work/source" -B "$work/build" -G Ninja -DLINUX=ON \
     -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=OFF -DBUILD_TOOLS=OFF \
+    -DCMAKE_C_FLAGS_RELEASE='-O3 -DNDEBUG -g1' \
+    -DCMAKE_CXX_FLAGS_RELEASE='-O3 -DNDEBUG -g1' \
     -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld \
     -DVCPKG_TARGET_TRIPLET="$arch-linux-release"
 cmake --build "$work/build" --target krkr2 --parallel "${JOBS:-2}"
 binary=$(find "$work/build/bin" -type f -name krkr2 -print -quit)
 test -n "$binary"
 cp -aL "$(dirname "$binary")/." "$out/"
+objcopy --only-keep-debug "$out/krkr2" "$work/krkr2.debug"
 strip --strip-unneeded "$out/krkr2"
+objcopy --add-gnu-debuglink="$work/krkr2.debug" "$out/krkr2"
 "$out/krkr2" --help
 mkdir -p "$out/licenses"
 cp "$work/source/LICENSE" "$out/licenses/krkr2.txt"
