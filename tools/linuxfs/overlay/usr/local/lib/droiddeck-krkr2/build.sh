@@ -33,10 +33,12 @@ python3 -m venv "$work/tools"
 export PATH="$work/tools/bin:$PATH" VCPKG_ROOT="$work/vcpkg"
 bash "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 echo '== STEP Build Krkr2 dependencies and engine'
+# Legacy TJS string conversions also rely on null-this checks in the callee.
 cmake -S "$work/source" -B "$work/build" -G Ninja -DLINUX=ON \
     -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=OFF -DBUILD_TOOLS=OFF \
     -DCMAKE_C_FLAGS_RELEASE='-O3 -DNDEBUG -g1' \
     -DCMAKE_CXX_FLAGS_RELEASE='-O3 -DNDEBUG -g1' \
+    -DCMAKE_CXX_FLAGS=-fno-delete-null-pointer-checks \
     -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld \
     -DVCPKG_TARGET_TRIPLET="$arch-linux-release"
 cmake --build "$work/build" --target krkr2 --parallel "${JOBS:-2}"

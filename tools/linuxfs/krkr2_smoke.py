@@ -20,7 +20,11 @@ def create(archive):
             'throw "Unexpected resource";\n'
             'Scripts.execStorage("probe.tjs");\n'
             'System.exit();\n'),
-        'probe.tjs': 'Debug.message("DROIDDECK_KRKR2_ARCHIVE_ROOT_OK");\n',
+        'probe.tjs': (
+            'var empty = "";\n'
+            'if (empty.length != 0 || empty[0] != "" || (int)empty != 0 '
+            '|| (real)empty != 0) throw "Empty string conversion failed";\n'
+            'Debug.message("DROIDDECK_KRKR2_ARCHIVE_ROOT_OK");\n'),
     }
     package = bytearray(b'XP3\r\n \n\x1a\x8bg\x01' + bytes(8))
     index = bytearray()
