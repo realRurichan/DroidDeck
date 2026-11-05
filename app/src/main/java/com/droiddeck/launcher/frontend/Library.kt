@@ -42,7 +42,8 @@ object Library {
         val iconRes: Int get() = when (id) {
             "rpcs3" -> R.drawable.emu_rpcs3; "armsx2" -> R.drawable.emu_pcsx2; "dolphin" -> R.drawable.emu_dolphin
             "duckstation" -> R.drawable.emu_duckstation; "melonds" -> R.drawable.emu_melonds; "cemu" -> R.drawable.emu_cemu
-            "ppsspp" -> R.drawable.emu_ppsspp; "onsyuri" -> R.drawable.emu_onsyuri; else -> R.drawable.emu_retroarch
+            "ppsspp" -> R.drawable.emu_ppsspp; "onsyuri" -> R.drawable.emu_onsyuri
+            "krkr2" -> R.drawable.emu_krkr2; else -> R.drawable.emu_retroarch
         }
     }
 
@@ -283,6 +284,7 @@ object Library {
         Spec("ppsspp", "PPSSPP", "PSP", "/usr/local/bin/PPSSPPSDL", listOf("psp"), setOf("iso", "cso", "pbp", "chd")),
         Spec("retroarch", "RetroArch", "many systems", "/usr/bin/retroarch", emptyList(), emptySet()),
         Spec("onsyuri", "ONScripter Yuri", "NScripter / ONS", "/usr/bin/retroarch", OnscripterGames.folders, emptySet()),
+        Spec("krkr2", "Krkr2", "KiriKiri / 吉里吉里", "/usr/local/bin/droiddeck-krkr2-run", KirikiriGames.folders.toList(), emptySet()),
     )
     private fun displayTitle(name: String): String =
         name.replace(Regex("\\s*[(\\[][^)\\]]*[)\\]]"), "").trim().ifEmpty { name }
@@ -290,7 +292,7 @@ object Library {
     private val systemFolders: Set<String> by lazy { specs.flatMap { it.folders }.toSet() }
     private val installedIds = mapOf(
         "rpcs3" to "rpcs3", "armsx2" to "armsx2", "dolphin" to "dolphin", "duckstation" to "duckstation",
-        "melonds" to "melonds", "cemu" to "cemu", "ppsspp" to "emulators", "retroarch" to "emulators", "onsyuri" to "onsyuri",
+        "melonds" to "melonds", "cemu" to "cemu", "ppsspp" to "emulators", "retroarch" to "emulators", "onsyuri" to "onsyuri", "krkr2" to "krkr2",
     )
 
     fun nameForProgram(program: String?): String? =
@@ -344,6 +346,14 @@ object Library {
                     val dir = script.parentFile!!
                     val rel = script.relativeTo(romsRoot).invariantSeparatorsPath
                     Rom(dir.name, script, "/root/ROMs/$rel", spec.id,
+                        listOf("cover.png", "cover.jpg").map { File(dir, it) }.firstOrNull { it.isFile })
+                })
+            }
+            if (spec.id == "krkr2" && romsRoot != null) {
+                games.addAll(KirikiriGames.scan(romsRoot).map { entry ->
+                    val dir = if (entry.isDirectory) entry else entry.parentFile!!
+                    val rel = entry.relativeTo(romsRoot).invariantSeparatorsPath
+                    Rom(dir.name, entry, "/root/ROMs/$rel", spec.id,
                         listOf("cover.png", "cover.jpg").map { File(dir, it) }.firstOrNull { it.isFile })
                 })
             }
@@ -414,6 +424,7 @@ object Library {
     }
 
     fun launchArgs(emulatorId: String, guestPath: String): List<String> = when (emulatorId) {
+        "krkr2" -> listOf(if (guestPath.endsWith(".xp3", true)) "--xp3=$guestPath" else "--game=$guestPath")
         "onsyuri" -> listOf("-f", "-L", OnscripterGames.core, guestPath)
         "rpcs3" -> listOf("--no-gui", guestPath)
         "armsx2" -> listOf("-batch", "-bigpicture", "-fullscreen", "--", guestPath)

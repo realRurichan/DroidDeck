@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+[[ "${1:-}" == install ]] || { echo 'usage: droiddeck-krkr2-install install' >&2; exit 2; }
+[[ "$(uname -m)" == aarch64 ]] || { echo '== FAIL Krkr2 requires ARM64'; exit 1; }
+command -v apt-get >/dev/null || { echo '== FAIL Krkr2 requires the Ubuntu runtime'; exit 1; }
+recipe=/usr/local/lib/droiddeck-krkr2
+work=$(mktemp -d /root/.krkr2-install.XXXXXX)
+trap 'rm -rf "$work"' EXIT
+trap 'echo "== FAIL Krkr2 installation"' ERR
+echo '== STEP Krkr2 build dependencies'
+droiddeck-root /usr/bin/apt-get update -q
+mapfile -t packages < "$recipe/packages.txt"
+droiddeck-root /usr/bin/apt-get install -y -q --no-install-recommends "${packages[@]}"
+bash "$recipe/build.sh" "$work/build" "$work/package"
+echo '== STEP Install Krkr2'
+mkdir -p /opt/krkr2
+cp -a "$work/package/." /opt/krkr2/
+test -x /opt/krkr2/krkr2

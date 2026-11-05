@@ -27,7 +27,12 @@ object DesktopCatalog {
         "", "applications-games", "Game",
     )
 
-    fun removable(kind: String) = kind == "appimage" || kind == "onsyuri"
+    fun krkr2Entry() = Entry(
+        "krkr2", "Krkr2", 1, "3dcfb29-r1", "krkr2", "", "", 0L,
+        "", "applications-games", "Game",
+    )
+
+    fun removable(kind: String) = kind == "appimage" || kind == "onsyuri" || kind == "krkr2"
 
     fun fetch(url: String = CATALOG_URL, cancelled: java.util.function.BooleanSupplier? = null): List<Entry>? {
         val body = Downloader.downloadString(url, cancelled) ?: return null
@@ -47,7 +52,8 @@ object DesktopCatalog {
                     o.optString("icon", "applications-games"), o.optString("category", "Game"),
                 )
             }.let { entries ->
-                if (url == CATALOG_URL) entries.filterNot { it.id == "onsyuri" } + onsyuriEntry() else entries
+                if (url == CATALOG_URL) entries.filterNot { it.id in setOf("onsyuri", "krkr2") } +
+                    listOf(onsyuriEntry(), krkr2Entry()) else entries
             }
         } catch (e: Exception) {
             Log.w(TAG, "catalog: $e"); null
@@ -183,6 +189,7 @@ object DesktopCatalog {
                               listener: LinuxRuntimeInstaller.ProgressListener?): String? {
         val root = LinuxRuntime.rootDir(context)
         if (!root.isDirectory) return context.getString(R.string.deskpkg_runtime_missing)
+        if (entry.id == "krkr2") return installEmulators(context, entry, cancelled, listener, "/usr/local/bin/droiddeck-krkr2-install")
         if (entry.id == "onsyuri") {
             if (cancelled?.getAsBoolean() == true) return context.getString(R.string.user_apps_download_failed)
             if (installed(context, EMULATORS_ID) == null) {
@@ -336,6 +343,7 @@ object DesktopCatalog {
             File(root, "usr/share/libretro/info/onsyuri_libretro.info").delete()
             File(root, "usr/share/doc/onsyuri/LICENSES.txt").delete()
         }
+        if (entry.id == "krkr2") FileUtils.delete(File(root, "opt/krkr2"))
         if (entry.id == EMULATORS_ID) marker(context, "retroarch").delete()
         marker(context, entry.id).delete()
     }

@@ -326,6 +326,7 @@ private fun Content(
                                 if (s.romsDir == null) stringResource(R.string.content_choose_roms)
                                 else if (e.id == "retroarch") stringResource(R.string.content_retroarch_roms)
                                 else if (e.id == "onsyuri") stringResource(R.string.content_onsyuri_roms)
+                                else if (e.id == "krkr2") stringResource(R.string.content_krkr2_roms)
                                 else stringResource(R.string.content_add_roms, e.system, e.system.substringBefore(' ')),
                             )
                         }
@@ -366,6 +367,7 @@ private fun Content(
                                     !s.ready -> stringResource(R.string.content_needs_runtime)
                                     s.sessionRunning -> stringResource(R.string.content_stop_first)
                                     e.id == "onsyuri" -> stringResource(R.string.content_onsyuri_install)
+                                    e.id == "krkr2" -> stringResource(R.string.content_krkr2_install)
                                     pkg.notes.isNotBlank() -> pkg.notes
                                     else -> stringResource(R.string.content_install_into, e.name)
                                 })
