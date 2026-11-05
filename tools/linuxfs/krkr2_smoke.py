@@ -47,7 +47,7 @@ def create(archive):
             'Plugins.link("fstat.dll");\n'
             f'var save = {json.dumps(str(archive.parent / "fresh-save/nested/probe.ksd"), ensure_ascii=False)};\n'
             'var data = %["value" => 42];\n'
-            'data.saveStruct(save);\n'
+            '(Dictionary.saveStruct incontextof data)(save, "b");\n'
             'if (Dictionary.loadStruct(save).value != 42) throw "Save round trip failed";\n'
             'if (!Storages.deleteFile(save)) throw "Delete existing save failed";\n'
             'if (Storages.deleteFile(save)) throw "Missing save reported deleted";\n'
