@@ -1,5 +1,6 @@
 ca-certificates
 curl
+libasound2-plugins
 libglx0
 libopengl0
 libgomp1

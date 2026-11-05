@@ -1,4 +1,7 @@
 #!/bin/bash
 set -euo pipefail
+if [[ -n "${PULSE_SERVER:-}" ]]; then
+    export ALSA_CONFIG_PATH=/usr/local/lib/droiddeck-krkr2/asound.conf
+fi
 cd /opt/krkr2
 exec ./krkr2 -controllerfocus=yes "$@"

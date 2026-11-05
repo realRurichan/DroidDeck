@@ -61,6 +61,18 @@ images are handled. This covers this method, not every method of that plugin.
 An isolated phone game progressed through the previously failing character
 transition and later scenes; full-game compatibility is not established.
 
+The optional runtime dependencies include `libasound2-plugins`. The pinned
+OpenAL build uses ALSA; when DroidDeck supplies `PULSE_SERVER`, the launcher
+selects a Krkr2-only ALSA configuration that sends playback to that PulseAudio
+server and its Android output. It does not replace the global ALSA defaults.
+Without this bridge the desktop's ALSA default selects PipeWire, which is not
+the audio server used by DroidDeck sessions. Installation revision `72932a4-r2`
+adds this dependency; the engine archive is unchanged from `72932a4-r1`.
+On the phone, the restarted game created an unmuted ALSA playback stream on
+`DirectAudio`; its monitor contained nonzero PCM, and audible playback was
+confirmed. The separate headless sound fixture did not complete cleanly and
+is not counted as a passing audio regression.
+
 Krkr2 sessions automatically map physical and on-screen controllers to keyboard
 and mouse input. D-pad/left stick sends arrows, A sends Enter, B sends Esc,
 Menu/Start sends a right mouse click for the game's own context-menu action,

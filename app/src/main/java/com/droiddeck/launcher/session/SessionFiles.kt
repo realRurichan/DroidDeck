@@ -86,6 +86,7 @@ object SessionFiles {
             "usr/local/lib/droiddeck-krkr2/packages.txt" to "usr/local/lib/droiddeck-krkr2/packages.txt",
             "usr/local/lib/droiddeck-krkr2/binary.env" to "usr/local/lib/droiddeck-krkr2/binary.env",
             "usr/local/lib/droiddeck-krkr2/runtime-packages.txt" to "usr/local/lib/droiddeck-krkr2/runtime-packages.txt",
+            "usr/local/lib/droiddeck-krkr2/asound.conf" to "usr/local/lib/droiddeck-krkr2/asound.conf",
             "usr/local/bin/droiddeck-retroarch-paths" to "usr/local/bin/droiddeck-retroarch-paths",
             "usr/local/bin/droiddeck-snap-run" to "usr/local/bin/droiddeck-snap-run",
             "usr/local/bin/droiddeck-snap-confine" to "usr/local/bin/droiddeck-snap-confine",

@@ -91,17 +91,21 @@ class Krkr2InstallTest(unittest.TestCase):
             root = Path(directory)
             binary = root / 'krkr2'
             binary.write_text('#!/usr/bin/python3\nimport json, os, sys\n'
-                              'print(json.dumps([os.getcwd(), sys.argv[1:]]))\n')
+                              'print(json.dumps([os.getcwd(), sys.argv[1:], '
+                              'os.getenv("ALSA_CONFIG_PATH"), os.getenv("PULSE_SERVER")]))\n')
             binary.chmod(0o755)
             script = root / 'run.sh'
             script.write_text((BIN / 'droiddeck-krkr2-run').read_text()
                               .replace('/opt/krkr2', shlex.quote(str(root))))
-            for args in ([], ["--xp3=/root/ROMs/中文 'Game'/data.xp3"],
-                         ['--game=/root/example', '--', '-controllerfocus=no']):
-                result = subprocess.run(['bash', str(script)] + args, check=True,
-                                        capture_output=True, text=True, timeout=10)
-                self.assertEqual([str(root), ['-controllerfocus=yes'] + args],
-                                 json.loads(result.stdout))
+            for server in ('', 'unix:/tmp/session audio/PS0'):
+                for args in ([], ["--xp3=/root/ROMs/中文 'Game'/data.xp3"],
+                             ['--game=/root/example', '--', '-controllerfocus=no']):
+                    env = dict(os.environ, PULSE_SERVER=server, ALSA_CONFIG_PATH='/tmp/custom.conf')
+                    result = subprocess.run(['bash', str(script)] + args, check=True,
+                                            env=env, capture_output=True, text=True, timeout=10)
+                    config = '/usr/local/lib/droiddeck-krkr2/asound.conf' if server else '/tmp/custom.conf'
+                    self.assertEqual([str(root), ['-controllerfocus=yes'] + args, config, server],
+                                     json.loads(result.stdout))
 
 
 if __name__ == '__main__':
