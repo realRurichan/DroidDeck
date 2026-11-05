@@ -42,8 +42,8 @@ jobs:
           ALSOFT_DRIVERS: 'null'
         run: |
           set -euo pipefail
-          "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -N -R '^(psbfile|x11-keyboard)-runtime$'
-          xvfb-run -a "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -R '^(psbfile|x11-keyboard)-runtime$' --output-on-failure --no-tests=error
+          "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -N -R '^(psbfile|x11-keyboard|x11-controller-focus)-runtime$'
+          xvfb-run -a "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -R '^(psbfile|x11-keyboard|x11-controller-focus)-runtime$' --output-on-failure --no-tests=error
           game="$RUNNER_TEMP/游戏 'launch test'"
           mkdir -p "$game"
           printf '%s\n' 'Debug.message("DROIDDECK_KRKR2_SMOKE_OK");' 'System.exit();' > "$game/startup.tjs"

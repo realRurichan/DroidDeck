@@ -1,4 +1,4 @@
 #!/bin/bash
 set -euo pipefail
 cd /opt/krkr2
-exec ./krkr2 "$@"
+exec ./krkr2 -controllerfocus=yes "$@"
