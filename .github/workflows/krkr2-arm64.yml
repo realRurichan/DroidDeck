@@ -38,6 +38,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE: 1
           ALSOFT_DRIVERS: 'null'
         run: |
+          set -euo pipefail
           game="$RUNNER_TEMP/游戏 'launch test'"
           mkdir -p "$game"
           printf '%s\n' 'Debug.message("DROIDDECK_KRKR2_SMOKE_OK");' 'System.exit();' > "$game/startup.tjs"

@@ -35,8 +35,12 @@ Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), pinned to
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a` from the upstream development branch,
 which provides the desktop `--game` / `--xp3` launch interface. The build recipe
 pins vcpkg as well, omits Cocos' unused x86-only FMOD backend, and retains Krkr2's
-own OpenAL audio mixer. The original icon and upstream license are retained.
+own OpenAL audio mixer. It adds missing Linux header declarations and uses LLD
+to resolve the engine's static library cycles. The original icon and upstream
+license are retained.
 
 The optional `krkr2-arm64.yml` workflow runs the same recipe on native ARM64,
-checks the ELF architecture and `--help`, then saves a separate engine artifact.
-It is not part of the mandatory APK build.
+checks the ELF architecture and `--help`, and runs a synthetic TJS game under
+X11 using a path containing Unicode, spaces and quotes. It then saves a separate
+engine artifact. This does not replace testing games in DroidDeck on a phone,
+and is not part of the mandatory APK build.
