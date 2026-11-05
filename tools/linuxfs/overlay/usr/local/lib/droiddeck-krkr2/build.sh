@@ -9,7 +9,7 @@ work=$(cd "$work" && pwd)
 out=$(cd "$out" && pwd)
 export VCPKG_DISABLE_METRICS=1 VCPKG_MAX_CONCURRENCY=${JOBS:-2}
 export VCPKG_FORCE_SYSTEM_BINARIES=1
-export VCPKG_BINARY_SOURCES=clear
+export VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES:-clear}
 checkout() {
     git init -q "$1"
     git -C "$1" remote add origin "$2"
@@ -20,6 +20,7 @@ checkout() {
 echo '== STEP Krkr2 source and build tools'
 checkout "$work/source" https://github.com/2468785842/krkr2.git "$KRKR2_COMMIT"
 checkout "$work/vcpkg" https://github.com/microsoft/vcpkg.git "$VCPKG_COMMIT"
+git -C "$work/vcpkg" fetch --unshallow origin "$VCPKG_COMMIT"
 python3 "$here/prepare.py" "$work/source"
 case "$(uname -m)" in
     aarch64) arch=arm64 ;;

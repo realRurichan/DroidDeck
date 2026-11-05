@@ -12,8 +12,15 @@ jobs:
   build:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 180
+    env:
+      VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-cache,readwrite
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: krkr2-arm64-${{ hashFiles('tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/source.env') }}-${{ github.run_id }}
+          restore-keys: krkr2-arm64-${{ hashFiles('tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/source.env') }}-
       - name: Install build dependencies
         run: |
           sudo apt-get update -q
@@ -28,3 +35,8 @@ jobs:
         with:
           name: krkr2-linux-arm64
           path: krkr2-linux-arm64.tar.gz*
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: krkr2-arm64-${{ hashFiles('tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/source.env') }}-${{ github.run_id }}
