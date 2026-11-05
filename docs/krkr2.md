@@ -41,8 +41,14 @@ own OpenAL audio mixer. It adds missing Linux header declarations and uses LLD
 to resolve the engine's static library cycles. The original icon and upstream
 license are retained.
 
+The recipe also guards empty TJS string lengths and preserves legacy null-string
+checks with `-fno-delete-null-pointer-checks`. Without these, optimized Linux
+builds can segfault while rebuilding an XP3 root search path or evaluating empty
+string properties. Separate matching debug symbols are retained for crash diagnosis.
+
 The optional `krkr2-arm64.yml` workflow runs the same recipe on native ARM64,
 checks the ELF architecture and `--help`, and runs a synthetic TJS game under
-X11 using a path containing Unicode, spaces and quotes. It then saves a separate
-engine artifact. This does not replace testing games in DroidDeck on a phone,
+X11 using a path containing Unicode, spaces and quotes. A generated XP3 regression
+also checks archive-root resource lookup and empty string properties and conversions.
+It then saves separate engine and debug-symbol artifacts. This does not replace testing games in DroidDeck on a phone,
 and is not part of the mandatory APK build.

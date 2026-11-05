@@ -49,6 +49,8 @@ jobs:
           grep -q DROIDDECK_KRKR2_SMOKE_OK "$RUNNER_TEMP/krkr2-smoke.log"
           xvfb-run -a timeout 45 ./krkr2 "--xp3=$game/data.xp3" 2>&1 | tee "$RUNNER_TEMP/krkr2-archive-smoke.log"
           grep -q DROIDDECK_KRKR2_ARCHIVE_ROOT_OK "$RUNNER_TEMP/krkr2-archive-smoke.log"
+          grep -q DROIDDECK_KRKR2_PSB_RESOURCE_OK "$RUNNER_TEMP/krkr2-archive-smoke.log"
+          grep -q DROIDDECK_KRKR2_SAVE_OK "$RUNNER_TEMP/krkr2-archive-smoke.log"
       - uses: actions/upload-artifact@v4
         with:
           name: krkr2-linux-arm64
