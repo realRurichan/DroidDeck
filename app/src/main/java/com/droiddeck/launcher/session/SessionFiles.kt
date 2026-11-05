@@ -77,6 +77,8 @@ object SessionFiles {
             "usr/local/bin/droiddeck-text" to "usr/local/bin/droiddeck-text",
             "usr/local/bin/droiddeck-snapd" to "usr/local/bin/droiddeck-snapd",
             "usr/local/bin/droiddeck-emulators" to "usr/local/bin/droiddeck-emulators",
+            "usr/local/bin/droiddeck-onsyuri-install" to "usr/local/bin/droiddeck-onsyuri-install",
+            "usr/local/bin/droiddeck-retroarch-paths" to "usr/local/bin/droiddeck-retroarch-paths",
             "usr/local/bin/droiddeck-snap-run" to "usr/local/bin/droiddeck-snap-run",
             "usr/local/bin/droiddeck-snap-confine" to "usr/local/bin/droiddeck-snap-confine",
             "usr/local/bin/droiddeck-snapctl" to "usr/local/bin/droiddeck-snapctl",

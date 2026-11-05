@@ -42,7 +42,7 @@ object Library {
         val iconRes: Int get() = when (id) {
             "rpcs3" -> R.drawable.emu_rpcs3; "armsx2" -> R.drawable.emu_pcsx2; "dolphin" -> R.drawable.emu_dolphin
             "duckstation" -> R.drawable.emu_duckstation; "melonds" -> R.drawable.emu_melonds; "cemu" -> R.drawable.emu_cemu
-            "ppsspp" -> R.drawable.emu_ppsspp; else -> R.drawable.emu_retroarch
+            "ppsspp" -> R.drawable.emu_ppsspp; "onsyuri" -> R.drawable.emu_onsyuri; else -> R.drawable.emu_retroarch
         }
     }
 
@@ -282,6 +282,7 @@ object Library {
         Spec("cemu", "Cemu", "Wii U", "/opt/appimages/cemu.AppImage", listOf("wiiu", "wii u"), setOf("wua", "wud", "wux", "rpx")),
         Spec("ppsspp", "PPSSPP", "PSP", "/usr/local/bin/PPSSPPSDL", listOf("psp"), setOf("iso", "cso", "pbp", "chd")),
         Spec("retroarch", "RetroArch", "many systems", "/usr/bin/retroarch", emptyList(), emptySet()),
+        Spec("onsyuri", "ONScripter Yuri", "NScripter / ONS", "/usr/bin/retroarch", OnscripterGames.folders, emptySet()),
     )
     private fun displayTitle(name: String): String =
         name.replace(Regex("\\s*[(\\[][^)\\]]*[)\\]]"), "").trim().ifEmpty { name }
@@ -289,7 +290,7 @@ object Library {
     private val systemFolders: Set<String> by lazy { specs.flatMap { it.folders }.toSet() }
     private val installedIds = mapOf(
         "rpcs3" to "rpcs3", "armsx2" to "armsx2", "dolphin" to "dolphin", "duckstation" to "duckstation",
-        "melonds" to "melonds", "cemu" to "cemu", "ppsspp" to "emulators", "retroarch" to "emulators",
+        "melonds" to "melonds", "cemu" to "cemu", "ppsspp" to "emulators", "retroarch" to "emulators", "onsyuri" to "onsyuri",
     )
 
     fun nameForProgram(program: String?): String? =
@@ -304,6 +305,9 @@ object Library {
     fun drawsAtPanel(program: String?): Boolean = specs.any { it.program == program && it.atPanel }
 
     fun packageId(emulatorId: String): String? = installedIds[emulatorId]
+
+    fun installing(emulatorId: String, busyPackage: String?): Boolean = busyPackage != null &&
+        (installedIds[emulatorId] == busyPackage || (installedIds[emulatorId] == "emulators" && busyPackage == "onsyuri"))
 
     fun emulators(context: Context, installedPackage: (String) -> Boolean): List<Emulator> {
         val romsRoot = SessionPrefs.romsDir(context).takeIf { it.isNotEmpty() }?.let(::File)?.takeIf { it.isDirectory }
@@ -335,9 +339,18 @@ object Library {
                     }
                 }
             }
+            if (spec.id == "onsyuri" && romsRoot != null) {
+                games.addAll(OnscripterGames.scan(romsRoot).map { script ->
+                    val dir = script.parentFile!!
+                    val rel = script.relativeTo(romsRoot).invariantSeparatorsPath
+                    Rom(dir.name, script, "/root/ROMs/$rel", spec.id,
+                        listOf("cover.png", "cover.jpg").map { File(dir, it) }.firstOrNull { it.isFile })
+                })
+            }
             if (spec.id == "rpcs3") games.addAll(rpcs3Installed(context))
             val withArt = games.map { g -> if (g.art != null) g else CoverArt.cached(context, g)?.let { Rom(g.name, g.hostPath, g.guestPath, g.emulatorId, it) } ?: g }
-            Emulator(spec.id, spec.name, spec.system, spec.program, installedPackage(installedIds.getValue(spec.id)), withArt)
+            Emulator(spec.id, spec.name, spec.system, spec.program, (installedPackage(installedIds.getValue(spec.id)) ||
+                (spec.id == "retroarch" && installedPackage("retroarch"))), withArt)
         }
     }
 
@@ -401,6 +414,7 @@ object Library {
     }
 
     fun launchArgs(emulatorId: String, guestPath: String): List<String> = when (emulatorId) {
+        "onsyuri" -> listOf("-f", "-L", OnscripterGames.core, guestPath)
         "rpcs3" -> listOf("--no-gui", guestPath)
         "armsx2" -> listOf("-batch", "-bigpicture", "-fullscreen", "--", guestPath)
         "duckstation" -> listOf("-batch", "-bigpicture", "-fullscreen", "--", guestPath)

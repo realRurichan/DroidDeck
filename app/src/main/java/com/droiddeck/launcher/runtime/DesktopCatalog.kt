@@ -22,6 +22,13 @@ object DesktopCatalog {
         val icon: String, val category: String,
     )
 
+    fun onsyuriEntry() = Entry(
+        "onsyuri", "ONScripter Yuri", 1, "08f744b3-r1", "onsyuri", "", "", 0L,
+        "", "applications-games", "Game",
+    )
+
+    fun removable(kind: String) = kind == "appimage" || kind == "onsyuri"
+
     fun fetch(url: String = CATALOG_URL, cancelled: java.util.function.BooleanSupplier? = null): List<Entry>? {
         val body = Downloader.downloadString(url, cancelled) ?: return null
         return try {
@@ -39,6 +46,8 @@ object DesktopCatalog {
                     file.optLong("size", 0L), o.optString("notes", ""),
                     o.optString("icon", "applications-games"), o.optString("category", "Game"),
                 )
+            }.let { entries ->
+                if (url == CATALOG_URL) entries.filterNot { it.id == "onsyuri" } + onsyuriEntry() else entries
             }
         } catch (e: Exception) {
             Log.w(TAG, "catalog: $e"); null
@@ -174,6 +183,17 @@ object DesktopCatalog {
                               listener: LinuxRuntimeInstaller.ProgressListener?): String? {
         val root = LinuxRuntime.rootDir(context)
         if (!root.isDirectory) return context.getString(R.string.deskpkg_runtime_missing)
+        if (entry.id == "onsyuri") {
+            if (cancelled?.getAsBoolean() == true) return context.getString(R.string.user_apps_download_failed)
+            if (installed(context, EMULATORS_ID) == null) {
+                val dependency = fetch(cancelled = cancelled)?.firstOrNull { it.id == EMULATORS_ID }
+                    ?: return context.getString(R.string.deskpkg_install_failed)
+                val problem = installLocked(context, dependency, cancelled, listener)
+                if (problem != null) return problem
+                listener?.onDependencyInstalled(EMULATORS_ID)
+            }
+            return installEmulators(context, entry, cancelled, listener, "/usr/local/bin/droiddeck-onsyuri-install")
+        }
         if (entry.id == EMULATORS_ID && desktopFromPack(root)) return installEmulators(context, entry, cancelled, listener)
         if (entry.sha256.isEmpty()) return context.getString(R.string.deskpkg_no_checksum, entry.name)
         val download = downloadFile(context, entry)
@@ -247,7 +267,7 @@ object DesktopCatalog {
     }
 
     private fun installEmulators(context: Context, entry: Entry, cancelled: Downloader.Cancellation?,
-                                 listener: LinuxRuntimeInstaller.ProgressListener?): String? {
+                                 listener: LinuxRuntimeInstaller.ProgressListener?, script: String = EMULATORS_SCRIPT): String? {
         val release = RuntimeInstallService.holdForPackage(context, context.getString(R.string.deskpkg_installing, entry.name))
         val stop = java.util.concurrent.atomic.AtomicBoolean(false)
         val finished = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -263,7 +283,7 @@ object DesktopCatalog {
         }
         try {
             var failure: String? = null
-            val status = GuestCommand.run(context, listOf("/bin/bash", EMULATORS_SCRIPT, "install"), logName = "emulators",
+            val status = GuestCommand.run(context, listOf("/bin/bash", script, "install"), logName = entry.id,
                 cancelled = stop) { line ->
                 when {
                     line.startsWith("== STEP ") -> {
@@ -311,6 +331,12 @@ object DesktopCatalog {
             File(root, "opt/appimages/${entry.id}.AppImage").delete()
             File(root, "usr/share/applications/droiddeck-${entry.id}.desktop").delete()
         }
+        if (entry.id == "onsyuri") {
+            File(root, "usr/lib/aarch64-linux-gnu/libretro/onsyuri_libretro.so").delete()
+            File(root, "usr/share/libretro/info/onsyuri_libretro.info").delete()
+            File(root, "usr/share/doc/onsyuri/LICENSES.txt").delete()
+        }
+        if (entry.id == EMULATORS_ID) marker(context, "retroarch").delete()
         marker(context, entry.id).delete()
     }
 }

@@ -3645,4 +3645,6 @@
     <string name="stores_gamejolt_filter_status">状态</string>
     <string name="stores_gamejolt_filter_partners">合作伙伴</string>
     <string name="stores_gamejolt_followed">已关注的游戏</string>
+    <string name="content_onsyuri_roms">将解压后的 ONS 游戏分别放在 ROMs 目录的 ons/游戏名 中，保留脚本、资源和 default.ttf 字体。在这里通过 RetroArch 启动；在核心选项中设置脚本编码后重新启动游戏。存档保存在游戏目录中。</string>
+    <string name="content_onsyuri_install">可选的 RetroArch ONS 引擎。安装时会下载源码并在本机编译核心，必要时先安装 RetroArch 与 PPSSPP 共享套件。首次安装需要联网、可用空间及数分钟时间。卸载 ONS 会保留 RetroArch 和游戏。</string>
 </resources>

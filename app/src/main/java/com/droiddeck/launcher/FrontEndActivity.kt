@@ -2239,9 +2239,14 @@ class FrontEndActivity : ComponentActivity() {
         if (busy || LinuxRuntimeInstaller.isBusy() || pkgStage != null || SessionState.running) return
         pkgId = id; pkgStage = getString(R.string.store_starting); pkgPercent = -1
         Thread({
-            val problem = DesktopCatalog.install(this, entry) { stage, percent ->
-                ui.post { pkgStage = stage; pkgPercent = percent }
-            }
+            val problem = DesktopCatalog.install(this, entry, object : LinuxRuntimeInstaller.ProgressListener {
+                override fun onProgress(stage: String, percent: Int) {
+                    ui.post { pkgStage = stage; pkgPercent = percent }
+                }
+                override fun onDependencyInstalled(id: String) {
+                    ui.post { refreshPackages(); refresh() }
+                }
+            })
             ui.post {
                 pkgStage = null; pkgId = null
                 if (problem != null) android.widget.Toast.makeText(this, getString(R.string.main_pkg_problem, entry.name, problem), android.widget.Toast.LENGTH_LONG).show()
@@ -2254,7 +2259,7 @@ class FrontEndActivity : ComponentActivity() {
     private fun removePackage(id: String) {
         val entry = catalog?.firstOrNull { it.id == id } ?: return
         if (busy || LinuxRuntimeInstaller.isBusy() || pkgStage != null || SessionState.running) return
-        pkgId = id; pkgStage = getString(if (entry.kind == "appimage") R.string.main_removing_named else R.string.main_forgetting_named, entry.name); pkgPercent = -1
+        pkgId = id; pkgStage = getString(if (DesktopCatalog.removable(entry.kind)) R.string.main_removing_named else R.string.main_forgetting_named, entry.name); pkgPercent = -1
         Thread({
             DesktopCatalog.remove(this, entry)
             ui.post {

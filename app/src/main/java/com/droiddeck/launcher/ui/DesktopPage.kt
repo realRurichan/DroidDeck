@@ -226,7 +226,7 @@ private fun DesktopDock(
             available.forEach { e ->
                 key(e.id) {
                     val pkg = Library.packageId(e.id)?.let { id -> s.packages?.firstOrNull { it.id == id } }
-                    val busyHere = pkg != null && s.packageBusyId == pkg.id
+                    val busyHere = Library.installing(e.id, s.packageBusyId)
                     val canGet = pkg != null && !s.busy && s.packageBusyId == null && s.ready && !s.packageCatalogLoading && !s.sessionRunning
                     val system = if (e.systemRes != 0) stringResource(e.systemRes) else e.system.replaceFirstChar { c -> c.uppercase() }
                     DesktopCard(

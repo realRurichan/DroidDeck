@@ -97,6 +97,7 @@ import coil.compose.AsyncImage
 import com.droiddeck.launcher.HomeApp
 import com.droiddeck.launcher.R
 import com.droiddeck.launcher.frontend.Library
+import com.droiddeck.launcher.runtime.DesktopCatalog
 import com.droiddeck.launcher.runtime.UserApps
 import com.droiddeck.launcher.store.UserAppsState
 import java.io.File
@@ -314,7 +315,7 @@ private fun Content(
                                 BusyChip(s)
                                 SecondaryButton(stringResource(R.string.setup_tool_roms), onClick = a.onRoms)
                                 if (pkg != null) SecondaryButton(
-                                    if (pkg.kind == "appimage") stringResource(R.string.store_remove) else stringResource(R.string.common_hide),
+                                    if (DesktopCatalog.removable(pkg.kind)) stringResource(R.string.store_remove) else stringResource(R.string.common_hide),
                                     enabled = !s.busy && s.packageBusyId == null && !s.sessionRunning,
                                 ) { a.onRemovePackage(pkg.id) }
                             }
@@ -324,6 +325,7 @@ private fun Content(
                             Note(
                                 if (s.romsDir == null) stringResource(R.string.content_choose_roms)
                                 else if (e.id == "retroarch") stringResource(R.string.content_retroarch_roms)
+                                else if (e.id == "onsyuri") stringResource(R.string.content_onsyuri_roms)
                                 else stringResource(R.string.content_add_roms, e.system, e.system.substringBefore(' ')),
                             )
                         }
@@ -349,7 +351,7 @@ private fun Content(
                         if (pkg != null) Rise(2) {
                             Actions {
                                 PrimaryButton(
-                                    if (s.packageBusyId == pkg.id) stringResource(R.string.store_installing) else stringResource(R.string.content_install_named, e.name),
+                                    if (Library.installing(e.id, s.packageBusyId)) stringResource(R.string.store_installing) else stringResource(R.string.content_install_named, e.name),
                                     enabled = !s.busy && s.packageBusyId == null && s.ready && !s.packageCatalogLoading && !s.sessionRunning,
                                 ) { a.onInstallPackage(pkg.id) }
                                 if (s.sessionRunning) ActionChip(stringResource(R.string.content_stop_to_install), ok = false)
@@ -363,12 +365,13 @@ private fun Content(
                                     pkg == null -> stringResource(R.string.content_details_unavailable)
                                     !s.ready -> stringResource(R.string.content_needs_runtime)
                                     s.sessionRunning -> stringResource(R.string.content_stop_first)
+                                    e.id == "onsyuri" -> stringResource(R.string.content_onsyuri_install)
                                     pkg.notes.isNotBlank() -> pkg.notes
                                     else -> stringResource(R.string.content_install_into, e.name)
                                 })
                             }
                         }
-                        if (s.packageBusyId == pkg?.id) Rise(4) {
+                        if (Library.installing(e.id, s.packageBusyId)) Rise(4) {
                             val stage = s.packageStage
                             Text(
                                 if (stage != null && s.packagePercent >= 0) stringResource(R.string.store_busy_percent_short, stage, s.packagePercent) else stage ?: stringResource(R.string.store_starting),

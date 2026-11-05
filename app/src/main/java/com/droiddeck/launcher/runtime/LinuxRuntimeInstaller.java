@@ -44,6 +44,8 @@ public final class LinuxRuntimeInstaller {
     public interface ProgressListener {
         void onProgress(String stage, int percent);
 
+        default void onDependencyInstalled(String id) {}
+
         default void onProgress(Step step, String stage, int percent) {
             onProgress(stage, percent);
         }

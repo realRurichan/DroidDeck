@@ -1,0 +1,45 @@
+#!/bin/bash
+set -euo pipefail
+[[ "${1:-}" == install ]] || { echo 'usage: droiddeck-onsyuri-install install' >&2; exit 2; }
+[[ "$(uname -m)" == aarch64 ]] || { echo '== FAIL ONScripter Yuri requires ARM64'; exit 1; }
+test -x /usr/bin/retroarch || { echo '== FAIL Install the Emulators package first'; exit 1; }
+revision=08f744b31cc1907b66a15f0402e62321a131ed81
+work=$(mktemp -d /root/.onsyuri-install.XXXXXX)
+trap 'rm -rf "$work"' EXIT
+trap 'echo "== FAIL ONScripter Yuri installation"' ERR
+echo '== STEP ONS build dependencies'
+if command -v apt-get >/dev/null; then
+    droiddeck-root /usr/bin/apt-get update -q
+    droiddeck-root /usr/bin/apt-get install -y -q --no-install-recommends \
+        build-essential cmake git ca-certificates
+elif command -v pacman >/dev/null; then
+    droiddeck-root /usr/bin/pacman -S --needed --noconfirm gcc make cmake git ca-certificates
+else
+    echo '== FAIL No supported package manager'; exit 1
+fi
+echo '== STEP ONScripter Yuri source'
+git init -q "$work/source"
+git -C "$work/source" remote add origin https://github.com/YuriSizuku/OnscripterYuri.git
+git -C "$work/source" fetch --depth 1 origin "$revision"
+git -C "$work/source" checkout -q --detach FETCH_HEAD
+test "$(git -C "$work/source" rev-parse HEAD)" = "$revision"
+git -C "$work/source" submodule update --init --depth 1
+git -C "$work/source/src/onsyuri_libretro/deps/SDL_ttf" submodule update --init --depth 1 external/freetype
+echo '== STEP Build ONScripter Yuri core'
+cmake -S "$work/source/src/onsyuri_libretro" -B "$work/build" -DCMAKE_BUILD_TYPE=Release
+cmake --build "$work/build" --parallel 2
+strip --strip-unneeded "$work/build/onsyuri_libretro.so"
+{
+    printf 'Source: https://github.com/YuriSizuku/OnscripterYuri\nCommit: %s\n' "$revision"
+    find "$work/source" -type f \( -iname 'COPYING*' -o -iname 'LICENSE*' -o -name FTL.TXT \) -not -path '*/.git/*' -print0 |
+        sort -z | while IFS= read -r -d '' license; do
+            printf '\n--- %s ---\n' "${license#"$work/source/"}"
+            cat "$license"
+        done
+    cat "$work/source/src/onsyuri_libretro/deps/lua/lua.h"
+} > "$work/LICENSES.txt"
+echo '== STEP Install ONScripter Yuri core'
+install -Dm644 "$work/source/src/onsyuri_libretro/onsyuri_libretro.info" /usr/share/libretro/info/onsyuri_libretro.info
+install -Dm644 "$work/LICENSES.txt" /usr/share/doc/onsyuri/LICENSES.txt
+install -Dm755 "$work/build/onsyuri_libretro.so" /usr/lib/aarch64-linux-gnu/libretro/onsyuri_libretro.so.new
+mv -f /usr/lib/aarch64-linux-gnu/libretro/onsyuri_libretro.so.new /usr/lib/aarch64-linux-gnu/libretro/onsyuri_libretro.so

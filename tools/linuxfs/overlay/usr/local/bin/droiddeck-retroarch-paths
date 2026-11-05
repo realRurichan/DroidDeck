@@ -1,0 +1,46 @@
+#!/usr/bin/python3
+from pathlib import Path
+import re
+
+
+def repair(root=Path('/')):
+    home = root / 'root'
+    config = home / '.config/retroarch/retroarch.cfg'
+    text = config.read_text() if config.is_file() else ''
+    original = text
+    settings = {
+        'libretro_directory': ('cores', '/usr/lib/aarch64-linux-gnu/libretro'),
+        'libretro_info_path': ('cores', '/usr/share/libretro/info'),
+        'assets_directory': ('assets', '/usr/share/libretro/assets'),
+    }
+    for key, (folder, target) in settings.items():
+        if not (root / target.lstrip('/')).is_dir():
+            continue
+        pattern = re.compile(r'^\s*' + key + r'\s*=\s*"([^"]*)"[^\n]*$', re.M)
+        match = pattern.search(text)
+        current = match.group(1) if match else ''
+        defaults = ('', 'default', '~/.config/retroarch/' + folder,
+                    '/root/.config/retroarch/' + folder)
+        if current.rstrip('/') not in defaults:
+            continue
+        local = home / '.config/retroarch' / folder
+        if current not in ('', 'default') and local.is_dir() and any(local.iterdir()):
+            continue
+        line = f'{key} = "{target}"'
+        text = pattern.sub(line, text) if match else text.rstrip('\n') + '\n' + line + '\n'
+    if text == original:
+        return False
+    config.parent.mkdir(parents=True, exist_ok=True)
+    if config.is_file():
+        backup = config.with_name('retroarch.cfg.before-directory-repair')
+        if not backup.exists():
+            backup.write_text(original)
+    staged = config.with_name('retroarch.cfg.paths-new')
+    staged.write_text(text)
+    staged.replace(config)
+    return True
+
+
+if __name__ == '__main__':
+    if repair():
+        print('RetroArch: configured installed cores, core information and menu assets')

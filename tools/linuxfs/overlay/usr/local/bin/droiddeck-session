@@ -480,6 +480,9 @@ case $mode in
   run)
     target=${1:?program path}
     shift
+    if [ "$target" = /usr/bin/retroarch ]; then
+      python3 /usr/local/bin/droiddeck-retroarch-paths 2>&1 || true
+    fi
     cores=$(program_cores)
     if [ -n "$cores" ]; then
       echo "== program cores: $cores"

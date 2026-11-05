@@ -3645,4 +3645,6 @@
     <string name="setup_gpu_bridged">GPU 透過 Mali 橋接</string>
     <string name="gpuinfo_bridge">透過 Mali 橋接執行，使用手機內建的 Vulkan 驅動程式</string>
     <string name="gpuinfo_bridge_off">關閉 Mali 橋接時不受支援：Turnip 需要 Adreno（Snapdragon）GPU</string>
+    <string name="content_onsyuri_roms">將解壓縮的 ONS 遊戲分別放在 ROMs 目錄的 ons/遊戲名 中，保留腳本、資源和 default.ttf 字型。在這裡透過 RetroArch 啟動；在核心選項中設定腳本編碼後重新啟動遊戲。存檔保存在遊戲目錄中。</string>
+    <string name="content_onsyuri_install">選用的 RetroArch ONS 引擎。安裝時會下載原始碼並在本機編譯核心，必要時先安裝 RetroArch 與 PPSSPP 共用套件。首次安裝需要連網、可用空間及數分鐘時間。移除 ONS 會保留 RetroArch 和遊戲。</string>
 </resources>

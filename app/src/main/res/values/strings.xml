@@ -3793,4 +3793,6 @@
     <string name="stores_gamejolt_filter_status">Status</string>
     <string name="stores_gamejolt_filter_partners">Partners</string>
     <string name="stores_gamejolt_followed">Followed games</string>
+    <string name="content_onsyuri_roms">Put each extracted ONS game in ons/Game Name under your ROMs folder, including its script, assets and default.ttf font. Launch a game here with RetroArch. Set Script Encoding in Core Options, then restart the content. Saves stay in the game folder.</string>
+    <string name="content_onsyuri_install">Optional ONS engine for RetroArch. Installation downloads and builds the core on this device and installs the shared RetroArch + PPSSPP package if needed. The first install needs internet, free space and several minutes. Removing ONS keeps RetroArch and your games.</string>
 </resources>
