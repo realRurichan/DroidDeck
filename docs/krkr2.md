@@ -21,11 +21,12 @@ its file browser. The engine is independent of RetroArch and needs no libretro
 core. Compatibility depends on the game and its required plugins; Windows DLLs
 are not automatically usable as native ARM64 plugins.
 
-The current installer builds pinned source on the device, including vcpkg
-dependencies. It requires the Ubuntu ARM64 runtime, a network connection,
-several GB of free space, and substantially more time than the ONS installer.
-Do not treat completion of the Android APK build as proof that this native
-engine build or a particular game has passed validation.
+The installer downloads a pinned prebuilt ARM64 engine (about 40 MB), verifies
+its SHA-256, extracts it and checks `--help` before replacing an existing engine.
+Only missing runtime libraries are installed with apt; no compiler or vcpkg
+build runs on the phone. A failed download, checksum or engine check leaves
+the previous installation intact. It requires the Ubuntu ARM64 runtime and a
+network connection. The package URL and checksum are in `binary.env`.
 
 The engine and resources are installed under `/opt/krkr2`. Removing Krkr2 deletes
 that installation and its marker, leaving the ROM directory and game saves

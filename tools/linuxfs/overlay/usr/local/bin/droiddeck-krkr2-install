@@ -4,15 +4,47 @@ set -euo pipefail
 [[ "$(uname -m)" == aarch64 ]] || { echo '== FAIL Krkr2 requires ARM64'; exit 1; }
 command -v apt-get >/dev/null || { echo '== FAIL Krkr2 requires the Ubuntu runtime'; exit 1; }
 recipe=/usr/local/lib/droiddeck-krkr2
+. "$recipe/binary.env"
+target=/opt/krkr2
 work=$(mktemp -d /root/.krkr2-install.XXXXXX)
-trap 'rm -rf "$work"' EXIT
+cleanup() {
+    local status=$?
+    if [[ -d "$work/previous" && ! -e "$target" ]]; then
+        mv "$work/previous" "$target" || return 1
+    fi
+    rm -rf "$work"
+    return "$status"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 trap 'echo "== FAIL Krkr2 installation"' ERR
-echo '== STEP Krkr2 build dependencies'
-droiddeck-root /usr/bin/apt-get update -q
-mapfile -t packages < "$recipe/packages.txt"
-droiddeck-root /usr/bin/apt-get install -y -q --no-install-recommends "${packages[@]}"
-bash "$recipe/build.sh" "$work/build" "$work/package"
+
+echo '== STEP Krkr2 runtime dependencies'
+missing=()
+while IFS= read -r package; do
+    [[ -n "$package" ]] || continue
+    if [[ "$(dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null || true)" != installed ]]; then
+        missing+=("$package")
+    fi
+done < "$recipe/runtime-packages.txt"
+if ((${#missing[@]})); then
+    droiddeck-root /usr/bin/apt-get update -q
+    droiddeck-root /usr/bin/apt-get install -y -q --no-install-recommends "${missing[@]}"
+fi
+
+echo '== STEP Download Krkr2 ARM64 engine'
+curl --fail --location --retry 3 --connect-timeout 20 --speed-limit 1024 --speed-time 60 \
+    --output "$work/engine.tar.gz" "$KRKR2_BINARY_URL"
+echo '== STEP Verify Krkr2 download'
+printf '%s  %s\n' "$KRKR2_BINARY_SHA256" "$work/engine.tar.gz" | sha256sum --check -
+mkdir "$work/package"
+tar -xzf "$work/engine.tar.gz" --no-same-owner -C "$work/package"
+test -x "$work/package/krkr2"
+echo '== STEP Check Krkr2 engine'
+(cd "$work/package" && ./krkr2 --help)
+
 echo '== STEP Install Krkr2'
-mkdir -p /opt/krkr2
-cp -a "$work/package/." /opt/krkr2/
-test -x /opt/krkr2/krkr2
+mkdir -p "$(dirname "$target")"
+if [[ -e "$target" ]]; then mv "$target" "$work/previous"; fi
+mv "$work/package" "$target"

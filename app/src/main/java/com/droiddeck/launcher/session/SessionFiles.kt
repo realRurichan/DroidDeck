@@ -84,6 +84,8 @@ object SessionFiles {
             "usr/local/lib/droiddeck-krkr2/prepare.py" to "usr/local/lib/droiddeck-krkr2/prepare.py",
             "usr/local/lib/droiddeck-krkr2/source.env" to "usr/local/lib/droiddeck-krkr2/source.env",
             "usr/local/lib/droiddeck-krkr2/packages.txt" to "usr/local/lib/droiddeck-krkr2/packages.txt",
+            "usr/local/lib/droiddeck-krkr2/binary.env" to "usr/local/lib/droiddeck-krkr2/binary.env",
+            "usr/local/lib/droiddeck-krkr2/runtime-packages.txt" to "usr/local/lib/droiddeck-krkr2/runtime-packages.txt",
             "usr/local/bin/droiddeck-retroarch-paths" to "usr/local/bin/droiddeck-retroarch-paths",
             "usr/local/bin/droiddeck-snap-run" to "usr/local/bin/droiddeck-snap-run",
             "usr/local/bin/droiddeck-snap-confine" to "usr/local/bin/droiddeck-snap-confine",

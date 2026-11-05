@@ -3647,6 +3647,6 @@
     <string name="stores_gamejolt_followed">已关注的游戏</string>
     <string name="content_onsyuri_roms">将解压后的 ONS 游戏分别放在 ROMs 目录的 ons/游戏名 中，保留脚本、资源和 default.ttf 字体。在这里通过 RetroArch 启动；在核心选项中设置脚本编码后重新启动游戏。存档保存在游戏目录中。</string>
     <string name="content_onsyuri_install">可选的 RetroArch ONS 引擎。安装时会下载源码并在本机编译核心，必要时先安装 RetroArch 与 PPSSPP 共享套件。首次安装需要联网、可用空间及数分钟时间。卸载 ONS 会保留 RetroArch 和游戏。</string>
-    <string name="content_krkr2_install">可选的吉里吉里引擎，单独安装在 Linux 环境中，不随 APK 安装。首次安装会下载并编译源码，需要联网、数 GB 可用空间及较长时间。卸载 Krkr2 会保留游戏。</string>
+    <string name="content_krkr2_install">可选的吉里吉里引擎，单独安装在 Linux 环境中。联网下载约 40 MB 的 ARM64 预编译包，校验后安装，无需在手机上编译。卸载 Krkr2 会保留游戏。</string>
     <string name="content_krkr2_roms">沿用全局 ROM 目录。将每款解压后的游戏放在 krkr/游戏名/，保留 startup.tjs 或 data.xp3 及全部资源；也支持 krkr2/、kirikiri/。补丁包不应作为游戏入口，兼容性取决于游戏和插件。</string>
 </resources>
