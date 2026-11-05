@@ -16,7 +16,7 @@ def psb_resource():
     array = lambda values: bytes([13, len(values), 13, *values])
     package = bytearray(40)
     offsets = []
-    for data in [array([0]), b'pixel\0', array([]), b'', array([0]),
+    for data in [array([0]), b'pixel.tjs\0', array([]), b'', array([0]),
                  array([len(resource)]), resource,
                  b'\x21' + array([0]) + b'\x11\0\x19\0']:
         offsets.append(len(package))
@@ -43,7 +43,7 @@ def create(archive):
             'Plugins.link("psbfile.dll");\n'
             'var psb = new PSBFile();\n'
             'if (!psb.load("probe.pimg")) throw "PSB load failed";\n'
-            'Scripts.execStorage("psb://probe.pimg/pixel");\n'
+            'Scripts.execStorage("psb://probe.pimg/pixel.tjs");\n'
             'Plugins.link("fstat.dll");\n'
             f'var save = {json.dumps(str(archive.parent / "fresh-save/nested/probe.ksd"), ensure_ascii=False)};\n'
             'var data = %["value" => 42];\n'
