@@ -10,15 +10,25 @@ SESSION_FILES = OVERLAY.parents[2] / 'app/src/main/java/com/droiddeck/launcher/s
 
 def check_extraction(overlay, source):
     deployed = set(re.findall(r'"(usr/local/bin/droiddeck-[^"]+)"\s+to\s+"usr/local/bin/[^"/]+"', source))
-    return ['not extracted at session start: ' + path.relative_to(overlay).as_posix()
+    errors = ['not extracted at session start: ' + path.relative_to(overlay).as_posix()
             for path in sorted((overlay / 'usr/local/bin').glob('droiddeck-*'))
             if path.relative_to(overlay).as_posix() not in deployed]
+    recipes = set(re.findall(r'"(usr/local/lib/droiddeck-krkr2/[^"/]+)"\s+to\s+"\1"', source))
+    errors += ['not extracted at session start: ' + path.relative_to(overlay).as_posix()
+               for path in recipe_files(overlay)
+               if path.relative_to(overlay).as_posix() not in recipes]
+    return errors
+
+
+def recipe_files(overlay):
+    return sorted(path for path in (overlay / 'usr/local/lib/droiddeck-krkr2').glob('*') if path.is_file())
 
 
 def source_assets(overlay=OVERLAY):
     sources = list((overlay / 'usr/local/bin').glob('droiddeck-*'))
     sources += [path for path in [overlay / 'usr/local/bin/steam-compatibility'] if path.is_file()]
     sources += [path for path in (overlay / 'usr/bin').rglob('*') if path.is_file()]
+    sources += recipe_files(overlay)
     result = {source: 'assets/linuxfs/' + source.relative_to(overlay).as_posix() for source in sources}
     if overlay == OVERLAY:
         desktop = overlay.parent / 'desktop'

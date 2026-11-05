@@ -38,6 +38,31 @@ class SessionAssetsTest(unittest.TestCase):
             package.writestr(self.name, self.helper.read_bytes())
         self.assertEqual([], assets.check(self.apk, self.overlay))
 
+    def test_krkr2_recipe_must_be_bundled_and_current(self):
+        recipe = self.overlay / 'usr/local/lib/droiddeck-krkr2/prepare.py'
+        recipe.parent.mkdir(parents=True)
+        recipe.write_bytes(b'current recipe')
+        name = 'assets/linuxfs/' + recipe.relative_to(self.overlay).as_posix()
+        for content, expected in [(None, ['missing ' + name]),
+                                  (b'old recipe', ['stale ' + name]),
+                                  (b'current recipe', [])]:
+            with self.subTest(content=content):
+                with ZipFile(self.apk, 'w') as package:
+                    package.writestr(self.name, self.helper.read_bytes())
+                    if content is not None:
+                        package.writestr(name, content)
+                self.assertEqual(expected, assets.check(self.apk, self.overlay))
+
+    def test_krkr2_recipe_must_be_extracted(self):
+        path = 'usr/local/lib/droiddeck-krkr2/build.sh'
+        recipe = self.overlay / path
+        recipe.parent.mkdir(parents=True)
+        recipe.write_bytes(b'build')
+        mapping = '"usr/local/bin/droiddeck-login1" to "usr/local/bin/droiddeck-login1"'
+        self.assertEqual(['not extracted at session start: ' + path],
+                         assets.check_extraction(self.overlay, mapping))
+        self.assertEqual([], assets.check_extraction(self.overlay, mapping + f'\n"{path}" to "{path}"'))
+
     def test_bundled_helper_must_also_be_extracted(self):
         self.assertEqual(['not extracted at session start: usr/local/bin/droiddeck-login1'],
                          assets.check_extraction(self.overlay, ''))
