@@ -494,6 +494,7 @@ class FrontEndActivity : ComponentActivity() {
         if (r.resultCode == RESULT_OK) InAppFilePicker.pickedPath(r.data)?.let { path ->
             SessionPrefs.setRomsDir(this, path)
             romsDir = path
+            refresh()
         }
     }
     private var settingsMode by mutableStateOf<String?>(null)
@@ -1564,7 +1565,7 @@ class FrontEndActivity : ComponentActivity() {
                         showRoms = false
                         pickRomsDir.launch(InAppFilePicker.buildDirIntent(this, getString(R.string.main_pick_roms), romsDir))
                     },
-                    onClear = { SessionPrefs.setRomsDir(this, ""); romsDir = null; showRoms = false },
+                    onClear = { SessionPrefs.setRomsDir(this, ""); romsDir = null; showRoms = false; refresh() },
                     onDismiss = { showRoms = false },
                 )
                 showNonAdreno?.let { release ->
