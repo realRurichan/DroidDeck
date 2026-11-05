@@ -23,14 +23,27 @@ jobs:
         run: |
           sudo apt-get update -q
           xargs -a tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/packages.txt sudo apt-get install -y --no-install-recommends
+          sudo apt-get install -y --no-install-recommends xvfb xauth libgl1-mesa-dri
       - name: Build and check native ARM64 engine
         env:
           VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-cache,readwrite
+          JOBS: 4
         run: |
           bash tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/build.sh "$RUNNER_TEMP/krkr2-build" "$RUNNER_TEMP/krkr2"
           readelf -h "$RUNNER_TEMP/krkr2/krkr2" | grep AArch64
           tar -C "$RUNNER_TEMP/krkr2" -czf krkr2-linux-arm64.tar.gz .
           sha256sum krkr2-linux-arm64.tar.gz > krkr2-linux-arm64.tar.gz.sha256
+      - name: Launch a TJS game in an X11 session
+        env:
+          LIBGL_ALWAYS_SOFTWARE: 1
+          ALSOFT_DRIVERS: 'null'
+        run: |
+          game="$RUNNER_TEMP/游戏 'launch test'"
+          mkdir -p "$game"
+          printf '%s\n' 'Debug.message("DROIDDECK_KRKR2_SMOKE_OK");' 'System.exit();' > "$game/startup.tjs"
+          cd "$RUNNER_TEMP/krkr2"
+          xvfb-run -a timeout 45 ./krkr2 "--game=$game" 2>&1 | tee "$RUNNER_TEMP/krkr2-smoke.log"
+          grep -q DROIDDECK_KRKR2_SMOKE_OK "$RUNNER_TEMP/krkr2-smoke.log"
       - uses: actions/upload-artifact@v4
         with:
           name: krkr2-linux-arm64
@@ -40,3 +53,11 @@ jobs:
         with:
           path: ${{ runner.temp }}/vcpkg-cache
           key: krkr2-arm64-${{ hashFiles('tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/source.env') }}-${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: krkr2-build-logs
+          path: |
+            ${{ runner.temp }}/krkr2-smoke.log
+            ${{ runner.temp }}/krkr2-build/build/CMakeFiles/CMakeConfigureLog.yaml
+            ${{ runner.temp }}/krkr2-build/vcpkg/buildtrees/**/*.log

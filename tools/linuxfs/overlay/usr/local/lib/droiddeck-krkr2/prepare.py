@@ -28,6 +28,13 @@ def prepare(root):
             raise RuntimeError(f'Unexpected pinned source: {name}')
         path.write_text(text.replace(before, after), encoding='utf-8')
 
+    path = root / 'cpp/core/plugin/PluginImpl.cpp'
+    text = path.read_text(encoding='utf-8')
+    before = '#include <functional>'
+    if text.count(before) != 1:
+        raise RuntimeError(f'Unexpected pinned source: {path}')
+    path.write_text(text.replace(before, before + '\n#include <wctype.h>'), encoding='utf-8')
+
 
 if __name__ == '__main__':
     prepare(Path(sys.argv[1]))
