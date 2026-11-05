@@ -1,4 +1,5 @@
 build-essential
+lld
 cmake
 ninja-build
 git
