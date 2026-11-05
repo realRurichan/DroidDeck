@@ -12,8 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 180
-    env:
-      VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-cache,readwrite
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache/restore@v4
@@ -26,6 +24,8 @@ jobs:
           sudo apt-get update -q
           xargs -a tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/packages.txt sudo apt-get install -y --no-install-recommends
       - name: Build and check native ARM64 engine
+        env:
+          VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-cache,readwrite
         run: |
           bash tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/build.sh "$RUNNER_TEMP/krkr2-build" "$RUNNER_TEMP/krkr2"
           readelf -h "$RUNNER_TEMP/krkr2/krkr2" | grep AArch64
