@@ -3045,6 +3045,15 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
         override fun onScroll(dx: Float, dy: Float) = scrollListener.onScroll(dx, dy)
         override fun onKey(evdev: Int, pressed: Boolean) = sendGuestKey(evdev, pressed)
+        override fun onPointer(dx: Float, dy: Float) {
+            if (dx == 0f && dy == 0f) return
+            val rect = drawnRect() ?: return
+            sendSceneDelta(dx, dy)
+            val scale = sceneScale(rect)
+            showCursor((cursorPos.x + dx / scale).coerceIn(rect.left, rect.right),
+                (cursorPos.y + dy / scale).coerceIn(rect.top, rect.bottom), fromMouse = true)
+        }
+        override fun onButton(button: Int, pressed: Boolean) = sendSceneButton(button, pressed)
         override fun onKeyboard() {
             uiHandler.post { togglePcKeyboard() }
         }
@@ -3058,7 +3067,9 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
         val now = android.os.SystemClock.uptimeMillis()
         if (now - padMouseCheckedAt < PAD_MOUSE_CHECK_MS) return padMouseOn
         padMouseCheckedAt = now
-        val on = !pointerLocked && EpicClient.launcherFocused(this) && !EpicClient.playing(this)
+        val krkr2 = SessionState.program == "/usr/local/bin/droiddeck-krkr2-run"
+        padMouse.setKrkr2(krkr2)
+        val on = !pointerLocked && (krkr2 || (EpicClient.launcherFocused(this) && !EpicClient.playing(this)))
         if (padMouseOn && !on) padMouse.reset()
         if (!padMouseOn && on) padBridge?.releaseAll()
         padMouseOn = on
@@ -3066,7 +3077,7 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun scrollTouchMode(): Boolean =
-        (routedTouchMode == SessionPrefs.TOUCH_AUTO || routedTouchMode == SessionPrefs.TOUCH_DIRECT) && padMouseMode()
+        (routedTouchMode == SessionPrefs.TOUCH_AUTO || routedTouchMode == SessionPrefs.TOUCH_DIRECT) && padMouseMode() && !padMouse.krkr2
 
     private fun fingerScroll(dx: Float, dy: Float) {
         val rect = drawnRect() ?: return

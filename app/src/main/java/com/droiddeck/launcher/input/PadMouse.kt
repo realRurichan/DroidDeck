@@ -16,6 +16,8 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
         fun onKeyboard()
         fun onNavigate()
         fun scrollSpeed(): Float
+        fun onPointer(dx: Float, dy: Float) {}
+        fun onButton(button: Int, pressed: Boolean) {}
     }
 
     private class Sticks {
@@ -50,6 +52,14 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
     private var stickRepeatAt = 0L
     private var frameAt = 0L
     private var running = false
+    var krkr2 = false
+        private set
+
+    fun setKrkr2(enabled: Boolean) {
+        if (krkr2 == enabled) return
+        reset()
+        krkr2 = enabled
+    }
 
     private val frame = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
@@ -163,9 +173,12 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
             stickRepeatAt = now + REPEAT_MS
         }
         val gain = gain(total.rightX, total.rightY)
-        val sx = total.rightX * gain
+        if (krkr2) {
+            listener.onPointer(total.rightX * gain * 800f * dt, total.rightY * gain * 800f * dt)
+        }
+        val sx = if (krkr2) 0f else total.rightX * gain
         val triggers = trigger(total.rightTrigger) - trigger(total.leftTrigger)
-        val vertical = (total.rightY * gain + triggers).coerceIn(-1f, 1f)
+        val vertical = ((if (krkr2) 0f else total.rightY * gain) + triggers).coerceIn(-1f, 1f)
         if (sx != 0f || vertical != 0f) {
             if (!scrolling) {
                 scrolling = true
@@ -175,8 +188,10 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
             listener.onScroll(sx * speed, vertical * speed)
         } else if (scrolling) {
             scrolling = false
-            press(KEY_SETTLE)
-            release(KEY_SETTLE)
+            if (!krkr2) {
+                press(KEY_SETTLE)
+                release(KEY_SETTLE)
+            }
         }
     }
 
@@ -239,18 +254,27 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
         codes.reversed().forEach { release(it) }
     }
 
-    private fun codesFor(button: Int): IntArray = when (button) {
-        PadState.A -> intArrayOf(KEY_ENTER)
-        PadState.X -> intArrayOf(KEY_MENU)
-        PadState.B -> intArrayOf(KEY_ESC, KEY_BACK)
-        PadState.START -> intArrayOf(KEY_ENTER)
-        PadState.LB -> intArrayOf(KEY_LEFTCTRL, KEY_PAGEUP)
-        PadState.RB -> intArrayOf(KEY_LEFTCTRL, KEY_PAGEDOWN)
-        UP -> intArrayOf(KEY_UP)
-        DOWN -> intArrayOf(KEY_DOWN)
-        LEFT -> intArrayOf(KEY_LEFT)
-        RIGHT -> intArrayOf(KEY_RIGHT)
-        else -> IntArray(0)
+    private fun codesFor(button: Int): IntArray {
+        if (krkr2) when (button) {
+            PadState.B, PadState.START -> return intArrayOf(KEY_ESC)
+            PadState.X -> return intArrayOf(BTN_LEFT)
+            PadState.R3 -> return intArrayOf(KEY_SPACE)
+            PadState.LB -> return intArrayOf(KEY_PAGEUP)
+            PadState.RB -> return intArrayOf(KEY_LEFTCTRL)
+        }
+        return when (button) {
+            PadState.A -> intArrayOf(KEY_ENTER)
+            PadState.X -> intArrayOf(KEY_MENU)
+            PadState.B -> intArrayOf(KEY_ESC, KEY_BACK)
+            PadState.START -> intArrayOf(KEY_ENTER)
+            PadState.LB -> intArrayOf(KEY_LEFTCTRL, KEY_PAGEUP)
+            PadState.RB -> intArrayOf(KEY_LEFTCTRL, KEY_PAGEDOWN)
+            UP -> intArrayOf(KEY_UP)
+            DOWN -> intArrayOf(KEY_DOWN)
+            LEFT -> intArrayOf(KEY_LEFT)
+            RIGHT -> intArrayOf(KEY_RIGHT)
+            else -> IntArray(0)
+        }
     }
 
     private fun wake() {
@@ -291,7 +315,7 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
     }
 
     private fun send(code: Int, pressed: Boolean) {
-        listener.onKey(code, pressed)
+        if (code == BTN_LEFT) listener.onButton(code, pressed) else listener.onKey(code, pressed)
     }
 
     companion object {
@@ -309,7 +333,9 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
         private const val LEFT = 102
         private const val RIGHT = 103
         private val DIRECTIONS = intArrayOf(UP, DOWN, LEFT, RIGHT)
-        private val TOUCH_BUTTONS = intArrayOf(PadState.A, PadState.B, PadState.X, PadState.Y, PadState.LB, PadState.RB, PadState.START)
+        private val TOUCH_BUTTONS = intArrayOf(PadState.A, PadState.B, PadState.X, PadState.Y, PadState.LB, PadState.RB, PadState.START, PadState.R3)
+        private const val BTN_LEFT = 272
+        private const val KEY_SPACE = 57
         private const val KEY_ESC = 1
         private const val KEY_ENTER = 28
         private const val KEY_UP = 103
@@ -331,6 +357,7 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
             KeyEvent.KEYCODE_BUTTON_L1 to PadState.LB,
             KeyEvent.KEYCODE_BUTTON_R1 to PadState.RB,
             KeyEvent.KEYCODE_BUTTON_START to PadState.START,
+            KeyEvent.KEYCODE_BUTTON_THUMBR to PadState.R3,
             KeyEvent.KEYCODE_DPAD_UP to UP,
             KeyEvent.KEYCODE_DPAD_DOWN to DOWN,
             KeyEvent.KEYCODE_DPAD_LEFT to LEFT,

@@ -18,6 +18,8 @@ class PadMouseTest {
     private var scrolledX = 0f
     private var scrolledY = 0f
     private var now = 1000L
+    private var pointerX = 0f
+    private var pointerY = 0f
     private lateinit var pad: PadMouse
 
     private val listener = object : PadMouse.Listener {
@@ -31,6 +33,8 @@ class PadMouseTest {
         override fun onKeyboard() { events += "keyboard" }
         override fun onNavigate() {}
         override fun scrollSpeed() = 2000f
+        override fun onPointer(dx: Float, dy: Float) { pointerX += dx; pointerY += dy }
+        override fun onButton(button: Int, pressed: Boolean) { events += "mouse $button $pressed" }
     }
 
     @Before fun setUp() {
@@ -45,6 +49,48 @@ class PadMouseTest {
         key(KeyEvent.KEYCODE_BUTTON_A, true)
         key(KeyEvent.KEYCODE_BUTTON_A, false)
         assertEquals(listOf("key 28 down", "key 28 up", "key 108 down", "key 108 up", "key 28 down", "key 28 up"), events)
+    }
+
+    @Test fun krkr2TouchAndPhysicalButtonsShareOwnershipAndReleaseOnReset() {
+        pad.setKrkr2(true)
+        key(KeyEvent.KEYCODE_BUTTON_R1, true)
+        val touch = PadState().apply { press(PadState.RB, true); press(PadState.X, true) }
+        pad.onTouchPad(touch)
+        key(KeyEvent.KEYCODE_BUTTON_R1, false)
+        assertEquals(listOf("key 29 down", "mouse 272 true"), events)
+        pad.reset()
+        assertEquals(listOf("key 29 down", "mouse 272 true", "mouse 272 false", "key 29 up"), events)
+    }
+
+    @Test fun krkr2UsesGameKeysAndRestoresLauncherMappingWhenLeaving() {
+        pad.setKrkr2(true)
+        for (code in listOf(KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_B,
+            KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_THUMBR)) {
+            key(code, true)
+            key(code, false)
+        }
+        assertEquals(listOf("key 28 down", "key 28 up", "key 1 down", "key 1 up",
+            "key 104 down", "key 104 up", "key 57 down", "key 57 up"), events)
+        events.clear()
+        key(KeyEvent.KEYCODE_BUTTON_X, true)
+        pad.setKrkr2(false)
+        key(KeyEvent.KEYCODE_BUTTON_X, false)
+        key(KeyEvent.KEYCODE_BUTTON_X, true)
+        key(KeyEvent.KEYCODE_BUTTON_X, false)
+        assertEquals(listOf("mouse 272 true", "mouse 272 false", "key 127 down", "key 127 up"), events)
+    }
+
+    @Test fun krkr2RightStickMovesPointerWithoutScrollingOrSendingLauncherSettleKey() {
+        pad.setKrkr2(true)
+        motion(rightX = 1f, rightY = 0f)
+        pad.step(0.1f)
+        assertEquals(80f, pointerX, 0.01f)
+        assertEquals(0f, pointerY, 0.01f)
+        assertEquals(0f, scrolledX, 0.01f)
+        assertEquals(0f, scrolledY, 0.01f)
+        motion()
+        pad.step(0.1f)
+        assertTrue(events.isEmpty())
     }
 
     @Test fun rightStickScrollsByHowFarItIsPushedThenSettlesTheSelection() {

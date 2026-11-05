@@ -33,22 +33,41 @@ The engine and resources are installed under `/opt/krkr2`. Removing Krkr2 delete
 that installation and its marker, leaving the ROM directory and game saves
 untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
-Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), pinned to
-`3dcfb29aa8a7ed47981e1037db4b549dc310216a` from the upstream development branch,
-which provides the desktop `--game` / `--xp3` launch interface. The build recipe
-pins vcpkg as well, omits Cocos' unused x86-only FMOD backend, and retains Krkr2's
-own OpenAL audio mixer. It adds missing Linux header declarations and uses LLD
-to resolve the engine's static library cycles. The original icon and upstream
-license are retained.
+Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
+`3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
+commit `d937ebe8f20b150a0c06eedba5f449a091577244` in
+[realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/psbfile-linux-launch).
+It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
+unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
+engine's static library cycles. Engine changes live in the contribution branch;
+the packaging recipe only carries the Cocos ARM64 packaging changes.
+The fixes are submitted in [upstream PR #54](https://github.com/2468785842/krkr2/pull/54).
 
-The recipe also guards empty TJS string lengths and preserves legacy null-string
-checks with `-fno-delete-null-pointer-checks`. Without these, optimized Linux
-builds can segfault while rebuilding an XP3 root search path or evaluating empty
-string properties. Separate matching debug symbols are retained for crash diagnosis.
+The engine fixes optimized TJS empty-string accesses, Linux save directory
+creation, deletion of missing save files, and Blend2D font-buffer ownership.
+PSBFile now accepts files and Octet data, registers resources through the shared
+PSB media registry, preserves the last successful data on failed reloads, and
+rejects several invalid array/index/offset forms. This does not establish full
+compatibility with the proprietary Windows plugin or PSB v4.
+The root object preserves its native Dictionary type. KAG `emb escape=false`
+executes expanded tags as documented by the existing KAGParser plugin, while
+the default still escapes them. A phone test reached the visible game title
+menu; full gameplay, audio/video and save compatibility remain separate checks.
 
-The optional `krkr2-arm64.yml` workflow runs the same recipe on native ARM64,
-checks the ELF architecture and `--help`, and runs a synthetic TJS game under
-X11 using a path containing Unicode, spaces and quotes. A generated XP3 regression
-also checks archive-root resource lookup and empty string properties and conversions.
-It then saves separate engine and debug-symbol artifacts. This does not replace testing games in DroidDeck on a phone,
-and is not part of the mandatory APK build.
+Krkr2 sessions automatically map physical and on-screen controllers to keyboard
+and mouse input. D-pad/left stick sends arrows, A sends Enter, B/Start sends Esc,
+right stick moves the pointer, X clicks the left mouse button, LB sends Page Up,
+RB holds Ctrl, R3 sends Space, and Y opens the keyboard. Triggers scroll.
+Games decide what these keys do; typical KAG games use Ctrl for fast-forward
+and Page Up for history. Releasing controls, leaving the profile, losing focus
+or disconnecting a controller releases held inputs. Other emulator sessions
+keep their normal controller input.
+
+The optional `krkr2-arm64.yml` workflow builds the native ARM64 engine, verifies
+its architecture and `--help`, and runs the upstream `psbfile-runtime` CTest.
+Generated fixtures cover PSB v1/v2/v3, MDF, nested resources, directory listing,
+file/memory constructors, reload behavior and malformed input. An additional
+synthetic XP3 regression checks archive-root lookup, empty strings, binary saves
+and deletion. Separate matching debug symbols are retained for crash diagnosis.
+These checks do not replace gameplay testing in DroidDeck on a phone and are
+not part of the mandatory APK build.
