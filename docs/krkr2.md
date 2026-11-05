@@ -35,7 +35,7 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `43d0dbef086f4a1c305816afa63e1d13b6d44598` in
+commit `dcd5e981117dfcc7459f5419daec0fc76024f1ab` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/psbfile-linux-launch).
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
@@ -63,7 +63,9 @@ RB holds Ctrl, R3 sends Space, and Y opens the keyboard. Triggers scroll.
 The Linux launcher enables `-controllerfocus=yes`: arrow keys navigate visible,
 enabled KAG `ButtonLayer` controls by their position, including buttons whose
 scripts disable normal focus. Modal dialogs constrain the selection; hidden,
-clipped and disabled buttons are skipped. Independent text controls retain
+clipped and disabled buttons are skipped. Enter confirms a selected button
+through the existing hit-tested mouse click path, including mouse-only handlers,
+without also sending Enter to that button. Independent text controls retain
 their arrow input. This uses no game names, button names or fixed coordinates.
 Custom menus that do not expose KAG buttons still need their own keyboard
 handling or the right-stick pointer and X click.
