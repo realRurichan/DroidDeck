@@ -35,7 +35,7 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `d937ebe8f20b150a0c06eedba5f449a091577244` in
+commit `43bab237f65f9fdecd2e2ec4ed3d4c0549f8a078` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/psbfile-linux-launch).
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
@@ -53,6 +53,8 @@ The root object preserves its native Dictionary type. KAG `emb escape=false`
 executes expanded tags as documented by the existing KAGParser plugin, while
 the default still escapes them. A phone test reached the visible game title
 menu; full gameplay, audio/video and save compatibility remain separate checks.
+The desktop key converter also maps Cocos `KEY_ENTER` to TJS `VK_RETURN`,
+so normal Enter and the controller's A mapping reach game scripts.
 
 Krkr2 sessions automatically map physical and on-screen controllers to keyboard
 and mouse input. D-pad/left stick sends arrows, A sends Enter, B/Start sends Esc,
@@ -65,6 +67,9 @@ keep their normal controller input.
 
 The optional `krkr2-arm64.yml` workflow builds the native ARM64 engine, verifies
 its architecture and `--help`, and runs the upstream `psbfile-runtime` CTest.
+It also registers `x11-keyboard-runtime`, which uses XTest to verify real key
+down/up delivery for Return, keypad Enter, Escape, Down and Ctrl, then exits
+normally. The keyboard fixture contains no commercial game files.
 Generated fixtures cover PSB v1/v2/v3, MDF, nested resources, directory listing,
 file/memory constructors, reload behavior and malformed input. An additional
 synthetic XP3 regression checks archive-root lookup, empty strings, binary saves
