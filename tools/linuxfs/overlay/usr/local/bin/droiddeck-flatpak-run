@@ -6,13 +6,17 @@ case ":${XDG_DATA_DIRS:-}:" in
   *) export XDG_DATA_DIRS=$HOME/.local/share/flatpak/exports/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share} ;;
 esac
 socket=()
+filesystem=()
+if [ "${1:-}" = org.ppsspp.PPSSPP ]; then
+  filesystem=(--filesystem=/root/ROMs:ro)
+fi
 if [ -n "${BL_INSIDE:-}" ] || [ -n "${GAMESCOPE_WAYLAND_DISPLAY:-}" ]; then
   unset WAYLAND_DISPLAY
   export XDG_SESSION_TYPE=x11
   socket=(--nosocket=wayland --socket=x11)
 fi
-echo "== flatpak run ${socket[*]} $*"
+echo "== flatpak run ${socket[*]} ${filesystem[*]} $*"
 if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && command -v dbus-run-session >/dev/null 2>&1; then
-  exec dbus-run-session -- flatpak run "${socket[@]}" "$@"
+  exec dbus-run-session -- flatpak run "${socket[@]}" "${filesystem[@]}" "$@"
 fi
-exec flatpak run "${socket[@]}" "$@"
+exec flatpak run "${socket[@]}" "${filesystem[@]}" "$@"
