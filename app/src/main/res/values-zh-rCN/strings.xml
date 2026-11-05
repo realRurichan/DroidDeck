@@ -1184,6 +1184,7 @@
     <string name="ctrl_stick_click_hint">双击并按住摇杆可触发 L3 或 R3</string>
     <string name="ctrl_adaptive">自适应摇杆</string>
     <string name="ctrl_rumble">游戏震动</string>
+    <string name="ctrl_dead_zone">摇杆死区</string>
     <string name="ctrl_steam_button">Steam 按钮</string>
     <string name="ctrl_qam_button">QAM 按钮</string>
     <string name="ctrl_keyboard_button">键盘按钮</string>
@@ -2087,6 +2088,7 @@
     <string name="loadstate_starting">正在启动会话…</string>
     <string name="loadstate_elapsed">已用时 %1$d:%2$02d · 仍在处理</string>
     <string name="loadstate_steam_update">正在下载 Steam 客户端更新 · %1$d%%</string>
+    <string name="loadstate_steam_update_applying">正在应用 Steam 客户端更新…</string>
     <string name="loadstate_steam_client">正在下载 Steam 客户端 · %1$s</string>
 
     <string name="pextra_busy">已有兼容性工具正在安装</string>

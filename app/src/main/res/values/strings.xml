@@ -1198,6 +1198,7 @@
     <string name="ctrl_stick_click_hint">Double-tap and hold a stick for L3 or R3</string>
     <string name="ctrl_adaptive">Adaptive sticks</string>
     <string name="ctrl_rumble">Game vibration</string>
+    <string name="ctrl_dead_zone">Stick dead zone</string>
     <string name="ctrl_steam_button">Steam button</string>
     <string name="ctrl_qam_button">QAM button</string>
     <string name="ctrl_keyboard_button">Keyboard button</string>
@@ -2223,6 +2224,7 @@
     <string name="loadstate_starting">Starting the session…</string>
     <string name="loadstate_elapsed">%1$d:%2$02d elapsed · still working</string>
     <string name="loadstate_steam_update">Downloading the Steam client update · %1$d%%</string>
+    <string name="loadstate_steam_update_applying">Applying the Steam client update…</string>
     <string name="loadstate_steam_client">Downloading the Steam client · %1$s</string>
 
     <string name="pextra_busy">A compatibility tool install is already running</string>
