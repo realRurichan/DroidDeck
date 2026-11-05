@@ -57,7 +57,8 @@ The desktop key converter also maps Cocos `KEY_ENTER` to TJS `VK_RETURN`,
 so normal Enter and the controller's A mapping reach game scripts.
 
 Krkr2 sessions automatically map physical and on-screen controllers to keyboard
-and mouse input. D-pad/left stick sends arrows, A sends Enter, B/Start sends Esc,
+and mouse input. D-pad/left stick sends arrows, A sends Enter, B sends Esc,
+Menu/Start sends a right mouse click for the game's own context-menu action,
 right stick moves the pointer, X clicks the left mouse button, LB sends Page Up,
 RB holds Ctrl, R3 sends Space, and Y opens the keyboard. Triggers scroll.
 The Linux launcher enables `-controllerfocus=yes`: arrow keys navigate visible,
@@ -69,7 +70,8 @@ without also sending Enter to that button. Independent text controls retain
 their arrow input. This uses no game names, button names or fixed coordinates.
 Custom menus that do not expose KAG buttons still need their own keyboard
 handling or the right-stick pointer and X click.
-Games decide what these keys do; typical KAG games use Ctrl for fast-forward
+Games decide what these inputs do; a game's right-click action can open its menu
+or hide the message box, depending on its configuration. Typical KAG games use Ctrl for fast-forward
 and Page Up for history. Releasing controls, leaving the profile, losing focus
 or disconnecting a controller releases held inputs. Other emulator sessions
 keep their normal controller input.

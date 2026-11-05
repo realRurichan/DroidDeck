@@ -62,6 +62,26 @@ class PadMouseTest {
         assertEquals(listOf("key 29 down", "mouse 272 true", "mouse 272 false", "key 29 up"), events)
     }
 
+    @Test fun krkr2MenuSharesTouchAndPhysicalRightClickAndReleasesOnProfileExit() {
+        pad.setKrkr2(true)
+        key(KeyEvent.KEYCODE_BUTTON_START, true)
+        pad.onKey(KeyEvent(0, 0, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START, 1))
+        val touch = PadState().apply { press(PadState.START, true) }
+        pad.onTouchPad(touch)
+        key(KeyEvent.KEYCODE_BUTTON_START, false)
+        assertEquals(listOf("mouse 273 true"), events)
+        touch.press(PadState.START, false)
+        pad.onTouchPad(touch)
+        assertEquals(listOf("mouse 273 true", "mouse 273 false"), events)
+        key(KeyEvent.KEYCODE_MENU, true)
+        pad.setKrkr2(false)
+        assertFalse(pad.onKey(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU)))
+        key(KeyEvent.KEYCODE_BUTTON_START, true)
+        key(KeyEvent.KEYCODE_BUTTON_START, false)
+        assertEquals(listOf("mouse 273 true", "mouse 273 false", "mouse 273 true",
+            "mouse 273 false", "key 28 down", "key 28 up"), events)
+    }
+
     @Test fun krkr2UsesGameKeysAndRestoresLauncherMappingWhenLeaving() {
         pad.setKrkr2(true)
         for (code in listOf(KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_B,

@@ -85,7 +85,8 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
             }
             return true
         }
-        val button = BUTTONS[event.keyCode] ?: return false
+        val button = if (krkr2 && event.keyCode == KeyEvent.KEYCODE_MENU) PadState.START
+            else BUTTONS[event.keyCode] ?: return false
         if (event.repeatCount > 0) return true
         when (event.action) {
             KeyEvent.ACTION_DOWN -> set(source(event.deviceId, SOURCE_KEYS), button, true)
@@ -256,7 +257,8 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
 
     private fun codesFor(button: Int): IntArray {
         if (krkr2) when (button) {
-            PadState.B, PadState.START -> return intArrayOf(KEY_ESC)
+            PadState.B -> return intArrayOf(KEY_ESC)
+            PadState.START -> return intArrayOf(BTN_RIGHT)
             PadState.X -> return intArrayOf(BTN_LEFT)
             PadState.R3 -> return intArrayOf(KEY_SPACE)
             PadState.LB -> return intArrayOf(KEY_PAGEUP)
@@ -315,7 +317,7 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
     }
 
     private fun send(code: Int, pressed: Boolean) {
-        if (code == BTN_LEFT) listener.onButton(code, pressed) else listener.onKey(code, pressed)
+        if (code == BTN_LEFT || code == BTN_RIGHT) listener.onButton(code, pressed) else listener.onKey(code, pressed)
     }
 
     companion object {
@@ -335,6 +337,7 @@ class PadMouse(private val listener: Listener, private val clock: () -> Long = S
         private val DIRECTIONS = intArrayOf(UP, DOWN, LEFT, RIGHT)
         private val TOUCH_BUTTONS = intArrayOf(PadState.A, PadState.B, PadState.X, PadState.Y, PadState.LB, PadState.RB, PadState.START, PadState.R3)
         private const val BTN_LEFT = 272
+        private const val BTN_RIGHT = 273
         private const val KEY_SPACE = 57
         private const val KEY_ESC = 1
         private const val KEY_ENTER = 28
