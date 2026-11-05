@@ -1,0 +1,30 @@
+name: Build optional Krkr2 ARM64 engine
+on:
+  push:
+    branches: [feat/onsyuri-emulator-integration]
+    paths:
+      - tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/**
+      - .github/workflows/krkr2-arm64.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q
+          xargs -a tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/packages.txt sudo apt-get install -y --no-install-recommends
+      - name: Build and check native ARM64 engine
+        run: |
+          bash tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/build.sh "$RUNNER_TEMP/krkr2-build" "$RUNNER_TEMP/krkr2"
+          readelf -h "$RUNNER_TEMP/krkr2/krkr2" | grep AArch64
+          tar -C "$RUNNER_TEMP/krkr2" -czf krkr2-linux-arm64.tar.gz .
+          sha256sum krkr2-linux-arm64.tar.gz > krkr2-linux-arm64.tar.gz.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: krkr2-linux-arm64
+          path: krkr2-linux-arm64.tar.gz*
