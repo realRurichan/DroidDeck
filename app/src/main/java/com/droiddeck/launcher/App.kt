@@ -17,7 +17,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         com.droiddeck.launcher.ui.Themes.loadGradient(this)
-        com.droiddeck.launcher.ui.BuildWatermark.install(this)
         HomeApp.trackRecents(this)
         val process = if (android.os.Build.VERSION.SDK_INT >= 28) Application.getProcessName()
             else (getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager)
