@@ -4,6 +4,7 @@ on:
     branches: [feat/onsyuri-emulator-integration]
     paths:
       - tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/**
+      - tools/linuxfs/krkr2_smoke.py
       - .github/workflows/krkr2-arm64.yml
   workflow_dispatch:
 permissions:
@@ -42,9 +43,12 @@ jobs:
           game="$RUNNER_TEMP/游戏 'launch test'"
           mkdir -p "$game"
           printf '%s\n' 'Debug.message("DROIDDECK_KRKR2_SMOKE_OK");' 'System.exit();' > "$game/startup.tjs"
+          python3 tools/linuxfs/krkr2_smoke.py "$game/data.xp3"
           cd "$RUNNER_TEMP/krkr2"
           xvfb-run -a timeout 45 ./krkr2 "--game=$game" 2>&1 | tee "$RUNNER_TEMP/krkr2-smoke.log"
           grep -q DROIDDECK_KRKR2_SMOKE_OK "$RUNNER_TEMP/krkr2-smoke.log"
+          xvfb-run -a timeout 45 ./krkr2 "--xp3=$game/data.xp3" 2>&1 | tee "$RUNNER_TEMP/krkr2-archive-smoke.log"
+          grep -q DROIDDECK_KRKR2_ARCHIVE_ROOT_OK "$RUNNER_TEMP/krkr2-archive-smoke.log"
       - uses: actions/upload-artifact@v4
         with:
           name: krkr2-linux-arm64
@@ -65,5 +69,6 @@ jobs:
           name: krkr2-build-logs
           path: |
             ${{ runner.temp }}/krkr2-smoke.log
+            ${{ runner.temp }}/krkr2-archive-smoke.log
             ${{ runner.temp }}/krkr2-build/build/CMakeFiles/CMakeConfigureLog.yaml
             ${{ runner.temp }}/krkr2-build/vcpkg/buildtrees/**/*.log

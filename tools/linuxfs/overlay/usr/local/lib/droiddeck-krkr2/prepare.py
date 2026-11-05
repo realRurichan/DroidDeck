@@ -40,6 +40,15 @@ def prepare(root):
             raise RuntimeError(f'Unexpected pinned source: {path}')
         path.write_text(text.replace(before, before + f'\n#include {missing}'), encoding='utf-8')
 
+    path = root / 'cpp/core/tjs2/tjsString.h'
+    text = path.read_text(encoding='utf-8')
+    before = 'tjs_int GetLen() const { return Ptr->GetLength(); }'
+    if text.count(before) != 1:
+        raise RuntimeError(f'Unexpected pinned source: {path}')
+    # Empty TJS strings have no backing object; GCC removes null-this checks.
+    path.write_text(text.replace(before,
+        'tjs_int GetLen() const { return Ptr ? Ptr->GetLength() : 0; }'), encoding='utf-8')
+
 
 if __name__ == '__main__':
     prepare(Path(sys.argv[1]))
