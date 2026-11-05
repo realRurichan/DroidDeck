@@ -79,3 +79,8 @@ jobs:
             ${{ runner.temp }}/krkr2-archive-smoke.log
             ${{ runner.temp }}/krkr2-build/build/CMakeFiles/CMakeConfigureLog.yaml
             ${{ runner.temp }}/krkr2-build/vcpkg/buildtrees/**/*.log
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: krkr2-unverified-diagnostic-build
+          path: krkr2-linux-arm64.tar.gz*
