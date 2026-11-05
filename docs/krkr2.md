@@ -35,7 +35,7 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `43bab237f65f9fdecd2e2ec4ed3d4c0549f8a078` in
+commit `50522c946dd68e1dfb610a09ca59de6e6c91db04` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/psbfile-linux-launch).
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
@@ -60,6 +60,13 @@ Krkr2 sessions automatically map physical and on-screen controllers to keyboard
 and mouse input. D-pad/left stick sends arrows, A sends Enter, B/Start sends Esc,
 right stick moves the pointer, X clicks the left mouse button, LB sends Page Up,
 RB holds Ctrl, R3 sends Space, and Y opens the keyboard. Triggers scroll.
+The Linux launcher enables `-controllerfocus=yes`: arrow keys navigate visible,
+enabled KAG `ButtonLayer` controls by their position, including buttons whose
+scripts disable normal focus. Modal dialogs constrain the selection; hidden,
+clipped and disabled buttons are skipped. Independent text controls retain
+their arrow input. This uses no game names, button names or fixed coordinates.
+Custom menus that do not expose KAG buttons still need their own keyboard
+handling or the right-stick pointer and X click.
 Games decide what these keys do; typical KAG games use Ctrl for fast-forward
 and Page Up for history. Releasing controls, leaving the profile, losing focus
 or disconnecting a controller releases held inputs. Other emulator sessions
@@ -70,6 +77,9 @@ its architecture and `--help`, and runs the upstream `psbfile-runtime` CTest.
 It also registers `x11-keyboard-runtime`, which uses XTest to verify real key
 down/up delivery for Return, keypad Enter, Escape, Down and Ctrl, then exits
 normally. The keyboard fixture contains no commercial game files.
+`x11-controller-focus-runtime` checks spatial navigation with a synthetic menu,
+default-off behavior, reverse creation order, excluded buttons, text input,
+modal focus and Enter activation.
 Generated fixtures cover PSB v1/v2/v3, MDF, nested resources, directory listing,
 file/memory constructors, reload behavior and malformed input. An additional
 synthetic XP3 regression checks archive-root lookup, empty strings, binary saves

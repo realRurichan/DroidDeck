@@ -96,10 +96,12 @@ class Krkr2InstallTest(unittest.TestCase):
             script = root / 'run.sh'
             script.write_text((BIN / 'droiddeck-krkr2-run').read_text()
                               .replace('/opt/krkr2', shlex.quote(str(root))))
-            for args in ([], ["--xp3=/root/ROMs/中文 'Game'/data.xp3"]):
+            for args in ([], ["--xp3=/root/ROMs/中文 'Game'/data.xp3"],
+                         ['--game=/root/example', '--', '-controllerfocus=no']):
                 result = subprocess.run(['bash', str(script)] + args, check=True,
                                         capture_output=True, text=True, timeout=10)
-                self.assertEqual([str(root), args], json.loads(result.stdout))
+                self.assertEqual([str(root), ['-controllerfocus=yes'] + args],
+                                 json.loads(result.stdout))
 
 
 if __name__ == '__main__':
