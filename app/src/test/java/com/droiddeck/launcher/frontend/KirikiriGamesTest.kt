@@ -42,4 +42,15 @@ class KirikiriGamesTest {
         file("startup.tjs")
         assertEquals(listOf(temp.root), KirikiriGames.scan(temp.root))
     }
+
+    @Test fun recognizesNamedStartupArchivesAlongsideResourceArchives() {
+        val start = file("krkr/9-nine-九次九日九重色/Start.xp3")
+        file("krkr/9-nine-九次九日九重色/video.xp3")
+        file("krkr/9-nine-九次九日九重色/patch.tjs")
+        val startup = file("krkr/Another/Startup.XP3")
+        file("krkr/Another/voice.xp3")
+        val data = file("krkr/Uppercase/DATA.XP3")
+        file("krkr/Uppercase/image.xp3")
+        assertEquals(setOf(start, startup, data), KirikiriGames.scan(temp.root).toSet())
+    }
 }

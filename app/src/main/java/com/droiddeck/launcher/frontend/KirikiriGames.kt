@@ -11,7 +11,9 @@ internal object KirikiriGames {
             val files = dir.listFiles().orEmpty()
             val entry = when {
                 files.any { it.isFile && it.name == "startup.tjs" } -> dir
-                else -> files.firstOrNull { it.isFile && it.name == "data.xp3" }
+                else -> listOf("data.xp3", "start.xp3", "startup.xp3").firstNotNullOfOrNull { name ->
+                    files.firstOrNull { it.isFile && it.name.equals(name, true) }
+                }
                     ?: files.filter { it.isFile && it.extension.equals("xp3", true) &&
                         !it.nameWithoutExtension.startsWith("patch", true) }.singleOrNull()
             } ?: return false

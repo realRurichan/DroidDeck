@@ -10,7 +10,8 @@ DroidDeck. With no directory selected, the game list is empty.
 
 Place each extracted game in `krkr/Game Name/`; `krkr2/` and `kirikiri/` are also
 recognized. A directory containing `startup.tjs` takes precedence, then
-`data.xp3`. A single other XP3 archive is accepted when unambiguous. Patch-only
+`data.xp3`, `Start.xp3` or `startup.xp3` (archive names are case-insensitive).
+A single other XP3 archive is accepted when unambiguous. Patch-only
 and ambiguous archive folders are not listed. Keep all game assets and patches
 together; do not rename patch archives into entry points. `cover.png` or
 `cover.jpg` can be used as library artwork.
