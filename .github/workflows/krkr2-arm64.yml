@@ -26,7 +26,7 @@ jobs:
         run: |
           sudo apt-get update -q
           xargs -a tools/linuxfs/overlay/usr/local/lib/droiddeck-krkr2/packages.txt sudo apt-get install -y --no-install-recommends
-          sudo apt-get install -y --no-install-recommends xvfb xauth libgl1-mesa-dri
+          sudo apt-get install -y --no-install-recommends xvfb xauth xdotool libgl1-mesa-dri
       - name: Build and check native ARM64 engine
         env:
           VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-cache,readwrite
@@ -42,8 +42,8 @@ jobs:
           ALSOFT_DRIVERS: 'null'
         run: |
           set -euo pipefail
-          "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -N -R '^psbfile-runtime$'
-          xvfb-run -a "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -R '^psbfile-runtime$' --output-on-failure --no-tests=error
+          "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -N -R '^(psbfile|x11-keyboard)-runtime$'
+          xvfb-run -a "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -R '^(psbfile|x11-keyboard)-runtime$' --output-on-failure --no-tests=error
           game="$RUNNER_TEMP/游戏 'launch test'"
           mkdir -p "$game"
           printf '%s\n' 'Debug.message("DROIDDECK_KRKR2_SMOKE_OK");' 'System.exit();' > "$game/startup.tjs"
