@@ -35,7 +35,7 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `dcd5e981117dfcc7459f5419daec0fc76024f1ab` in
+commit `72932a464b7a7e12c73354f9c1d424cafcaa8ac0` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/psbfile-linux-launch).
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
@@ -55,6 +55,11 @@ the default still escapes them. A phone test reached the visible game title
 menu; full gameplay, audio/video and save compatibility remain separate checks.
 The desktop key converter also maps Cocos `KEY_ENTER` to TJS `VK_RETURN`,
 so normal Enter and the controller's A mapping reach game scripts.
+`layerExBTOA.dll` now provides `Layer.clipAlphaRect`: alpha masks, destination
+clipping, optional outside clearing, premultiplied colors and overlapping/shared
+images are handled. This covers this method, not every method of that plugin.
+An isolated phone game progressed through the previously failing character
+transition and later scenes; full-game compatibility is not established.
 
 Krkr2 sessions automatically map physical and on-screen controllers to keyboard
 and mouse input. D-pad/left stick sends arrows, A sends Enter, B sends Esc,
@@ -84,6 +89,9 @@ normally. The keyboard fixture contains no commercial game files.
 `x11-controller-focus-runtime` checks spatial navigation with a synthetic menu,
 default-off behavior, reverse creation order, excluded buttons, text input,
 modal focus and Enter activation.
+`layer-alpha-runtime` checks mask pixels, clipping, clear values, negative and
+extreme coordinates, shared/overlapping images, premultiplied RGB, invalid
+arguments and normal event-loop exit using an original synthetic fixture.
 Generated fixtures cover PSB v1/v2/v3, MDF, nested resources, directory listing,
 file/memory constructors, reload behavior and malformed input. An additional
 synthetic XP3 regression checks archive-root lookup, empty strings, binary saves
