@@ -107,6 +107,10 @@ arguments and normal event-loop exit using an original synthetic fixture.
 Generated fixtures cover PSB v1/v2/v3, MDF, nested resources, directory listing,
 file/memory constructors, reload behavior and malformed input. An additional
 synthetic XP3 regression checks archive-root lookup, empty strings, binary saves
-and deletion. Separate matching debug symbols are retained for crash diagnosis.
+and deletion. `textstream-runtime` and `parser-error-runtime` run the engine's
+generated script fixtures under Xvfb. They check text decoding through TJS and
+that script compilation errors are reported without executing invalid scripts
+or crashing the engine. CTest output is retained with failure logs. Separate
+matching debug symbols are retained for crash diagnosis.
 These checks do not replace gameplay testing in DroidDeck on a phone and are
 not part of the mandatory APK build.
