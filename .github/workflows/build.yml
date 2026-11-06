@@ -25,6 +25,10 @@ on:
         description: Rebuild preloads instead of reusing the approved binary snapshot
         type: boolean
         default: false
+      debug_apk:
+        description: Build a debuggable APK for device validation without publishing
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -314,6 +318,22 @@ jobs:
     outputs:
       variants: ${{ steps.variants.outputs.list }}
     steps:
+      - name: Select APK build variant
+        env:
+          DEBUG_APK: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_apk }}
+        run: |
+          variant=release
+          gradle_variant=Release
+          if [[ "$DEBUG_APK" == true ]]; then
+            variant=debug
+            gradle_variant=Debug
+          fi
+          {
+            echo "APK_PATH=app/build/outputs/apk/$variant/app-$variant.apk"
+            echo "APK_ASSEMBLE_TASK=assemble$gradle_variant"
+            echo "APK_TEST_TASK=test${gradle_variant}UnitTest"
+          } >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
@@ -582,15 +602,15 @@ jobs:
         run: |
           set -o pipefail
           python3 tools/release/runtime_inputs.py record
-          ./gradlew assembleRelease --console=plain -PndkVersion="$NDK_VERSION" 2>&1 | tee /tmp/build.log
-          python3 tools/release/check_session_assets.py app/build/outputs/apk/release/app-release.apk
-          python3 tools/release/runtime_inputs.py apk app/build/outputs/apk/release/app-release.apk
+          ./gradlew "$APK_ASSEMBLE_TASK" --console=plain -PndkVersion="$NDK_VERSION" 2>&1 | tee /tmp/build.log
+          python3 tools/release/check_session_assets.py "$APK_PATH"
+          python3 tools/release/runtime_inputs.py apk "$APK_PATH"
 
       - name: Check the store engines' library
         run: |
           set -euo pipefail
           NDK="${ANDROID_NDK_LATEST_HOME:-${ANDROID_NDK_HOME:-$ANDROID_NDK_ROOT}}"
-          python3 tools/release/check_android_libraries.py app/build/outputs/apk/release/app-release.apk \
+          python3 tools/release/check_android_libraries.py "$APK_PATH" \
             --readelf "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
           git diff --stat -- app/src/main/rust/stores/Cargo.lock
           git diff --exit-code -- app/src/main/rust/stores/Cargo.lock \
@@ -612,7 +632,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p app/build
-          ./gradlew testReleaseUnitTest --console=plain --info --stacktrace -Drobolectric.logging=stderr -PndkVersion="$NDK_VERSION" 2>&1 | tee app/build/unit-tests.log
+          ./gradlew "$APK_TEST_TASK" --console=plain --info --stacktrace -Drobolectric.logging=stderr -PndkVersion="$NDK_VERSION" 2>&1 | tee app/build/unit-tests.log
 
       - name: Upload unit test diagnostics
         id: unit-test-diagnostics
@@ -622,15 +642,15 @@ jobs:
           name: unit-test-results
           path: |
             app/build/unit-tests.log
-            app/build/test-results/testReleaseUnitTest/
-            app/build/reports/tests/testReleaseUnitTest/
+            app/build/test-results/${{ env.APK_TEST_TASK }}/
+            app/build/reports/tests/${{ env.APK_TEST_TASK }}/
           if-no-files-found: ignore
           retention-days: 14
 
       - name: Sign with the testkey (v1 + v2 + v3)
         run: |
           set -euo pipefail
-          APK=$(find app/build/outputs/apk -name '*.apk' | head -1)
+          APK="$APK_PATH"
           TOOLS=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -type d | sort -V | tail -1)
           "$TOOLS/zipalign" -p -f 4 "$APK" "$APK.aligned"
           "$TOOLS/apksigner" sign \
@@ -643,7 +663,7 @@ jobs:
       - name: Check the signature
         run: |
           set -euo pipefail
-          APK=$(find app/build/outputs/apk -name '*.apk' | head -1)
+          APK="$APK_PATH"
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
           "$APKSIGNER" verify --min-sdk-version 21 --verbose --print-certs "$APK" | tee /tmp/sig.txt
           unzip -l "$APK" | grep -qE 'META-INF/.*\.(SF|RSA|DSA)$' \
@@ -659,7 +679,7 @@ jobs:
         id: apk-upload
         with:
           name: droiddeck-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: ${{ env.APK_PATH }}
           if-no-files-found: error
           retention-days: 30
           compression-level: 0
@@ -824,7 +844,7 @@ jobs:
 
   sign:
     needs: [build, checks]
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !inputs.debug_apk
     permissions:
       contents: read
       actions: read
@@ -836,7 +856,7 @@ jobs:
 
   packs:
     needs: [build, checks]
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !inputs.debug_apk
     permissions:
       contents: read
       actions: read

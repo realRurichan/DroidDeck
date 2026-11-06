@@ -63,6 +63,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -311,14 +312,28 @@ private fun Content(
                     if (e.installed) {
                         Rise(3) {
                             Actions {
-                                PrimaryButton(stringResource(R.string.content_open_named, e.name), enabled = !s.busy, main = true) { a.onEmulator(e) }
+                                PrimaryButton(stringResource(R.string.content_open_named, e.name), enabled = !s.busy && s.packageBusyId == null, main = true) { a.onEmulator(e) }
                                 BusyChip(s)
                                 SecondaryButton(stringResource(R.string.setup_tool_roms), onClick = a.onRoms)
+                                if (e.id == "krkr2" && pkg != null) SecondaryButton(
+                                    if (Library.installing(e.id, s.packageBusyId)) stringResource(R.string.store_installing) else stringResource(R.string.content_reinstall_engine),
+                                    enabled = !s.busy && s.packageBusyId == null && s.ready && !s.packageCatalogLoading && !s.sessionRunning,
+                                    modifier = Modifier.testTag("krkr2-reinstall"),
+                                ) { a.onInstallPackage(pkg.id) }
                                 if (pkg != null) SecondaryButton(
                                     if (DesktopCatalog.removable(pkg.kind)) stringResource(R.string.store_remove) else stringResource(R.string.common_hide),
                                     enabled = !s.busy && s.packageBusyId == null && !s.sessionRunning,
                                 ) { a.onRemovePackage(pkg.id) }
                             }
+                        }
+                        if (Library.installing(e.id, s.packageBusyId)) Rise(4) {
+                            val stage = s.packageStage
+                            Text(
+                                if (stage != null && s.packagePercent >= 0) stringResource(R.string.store_busy_percent_short, stage, s.packagePercent) else stage ?: stringResource(R.string.store_starting),
+                                fontSize = 12.sp, color = colors.onSurfaceVariant, modifier = Modifier.padding(bottom = 6.dp),
+                            )
+                            if (s.packagePercent >= 0) LinearProgressIndicator(progress = { s.packagePercent / 100f }, modifier = Modifier.fillMaxWidth().height(4.dp))
+                            else LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(4.dp))
                         }
                         Rise(4) { SectionTitle(stringResource(R.string.content_games), e.games.size.toString()) }
                         if (e.games.isEmpty()) Rise(5) {

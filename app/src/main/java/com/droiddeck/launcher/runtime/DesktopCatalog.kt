@@ -9,10 +9,14 @@ import com.droiddeck.launcher.core.Downloader
 import com.droiddeck.launcher.core.FileUtils
 import org.json.JSONObject
 import java.io.File
+import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.BooleanSupplier
 
 object DesktopCatalog {
     private const val TAG = "DesktopCatalog"
     const val CATALOG_URL = "https://raw.githubusercontent.com/Droid-Deck/DroidDeck-Components/main/desktop.json"
+    const val KRKR2_CATALOG_URL = "https://github.com/realRurichan/DroidDeck/releases/download/krkr2-channel/krkr2.json"
     const val STEAM_SEED_URL = "https://raw.githubusercontent.com/Droid-Deck/DroidDeck-Components/main/steam-seed.json"
     const val PROTON_SEED_ID = "proton-arm64"
 
@@ -28,9 +32,38 @@ object DesktopCatalog {
     )
 
     fun krkr2Entry() = Entry(
-        "krkr2", "Krkr2", 1, "03aa34b-r1", "krkr2", "", "", 0L,
+        "krkr2", "Krkr2", 1, "", "krkr2", "", "", 0L,
         "", "applications-games", "Game",
     )
+
+    internal fun parseKrkr2(body: String): Entry {
+        val manifest = JSONObject(body)
+        require(manifest.get("schema") == 1 && manifest.get("id") == "krkr2")
+        val version = manifest.get("version") as? String ?: error("Missing Krkr2 version")
+        require(Regex("[A-Za-z0-9][A-Za-z0-9._-]{0,127}").matches(version))
+        val url = manifest.get("url") as? String ?: error("Missing Krkr2 URL")
+        require(url == "https://github.com/realRurichan/DroidDeck/releases/download/krkr2-linux-arm64-$version/krkr2-linux-arm64.tar.gz")
+        val sha256 = manifest.get("sha256") as? String ?: error("Missing Krkr2 checksum")
+        require(Regex("[0-9a-fA-F]{64}").matches(sha256))
+        val size = manifest.get("size")
+        require((size is Int || size is Long) && (size as Number).toLong() > 0)
+        return Entry("krkr2", "Krkr2", 1, version, "krkr2", url, sha256.lowercase(Locale.ROOT),
+            (size as Number).toLong(), "", "applications-games", "Game")
+    }
+
+    internal fun fetchKrkr2(
+        cancelled: BooleanSupplier? = null,
+        download: (String, BooleanSupplier?) -> String? = Downloader::downloadString,
+    ): Entry? {
+        if (cancelled?.asBoolean == true) return null
+        return try {
+            val body = download(KRKR2_CATALOG_URL, cancelled) ?: return null
+            if (cancelled?.asBoolean == true) null else parseKrkr2(body)
+        } catch (e: Exception) {
+            Log.w(TAG, "Krkr2 catalog: $e")
+            null
+        }
+    }
 
     fun removable(kind: String) = kind == "appimage" || kind == "onsyuri" || kind == "krkr2"
 
@@ -53,7 +86,7 @@ object DesktopCatalog {
                 )
             }.let { entries ->
                 if (url == CATALOG_URL) entries.filterNot { it.id in setOf("onsyuri", "krkr2") } +
-                    listOf(onsyuriEntry(), krkr2Entry()) else entries
+                    listOf(onsyuriEntry(), fetchKrkr2(cancelled) ?: krkr2Entry()) else entries
             }
         } catch (e: Exception) {
             Log.w(TAG, "catalog: $e"); null
@@ -189,7 +222,7 @@ object DesktopCatalog {
                               listener: LinuxRuntimeInstaller.ProgressListener?): String? {
         val root = LinuxRuntime.rootDir(context)
         if (!root.isDirectory) return context.getString(R.string.deskpkg_runtime_missing)
-        if (entry.id == "krkr2") return installEmulators(context, entry, cancelled, listener, "/usr/local/bin/droiddeck-krkr2-install")
+        if (entry.id == "krkr2") return installKrkr2(context, cancelled, listener)
         if (entry.id == "onsyuri") {
             if (cancelled?.getAsBoolean() == true) return context.getString(R.string.user_apps_download_failed)
             if (installed(context, EMULATORS_ID) == null) {
@@ -273,8 +306,29 @@ object DesktopCatalog {
         }
     }
 
-    private fun installEmulators(context: Context, entry: Entry, cancelled: Downloader.Cancellation?,
-                                 listener: LinuxRuntimeInstaller.ProgressListener?, script: String = EMULATORS_SCRIPT): String? {
+    internal fun installKrkr2(
+        context: Context, cancelled: Downloader.Cancellation?, listener: LinuxRuntimeInstaller.ProgressListener?,
+        download: (String, BooleanSupplier?) -> String? = Downloader::downloadString,
+        run: (List<String>, AtomicBoolean, (String) -> Unit) -> Int = { argv, stop, onLine ->
+            GuestCommand.run(context, argv, logName = "krkr2", cancelled = stop, onLine = onLine)
+        },
+    ): String? {
+        if (cancelled?.asBoolean == true) return context.getString(R.string.user_apps_download_failed)
+        val release = fetchKrkr2(cancelled, download)
+            ?: return context.getString(R.string.content_details_unavailable)
+        if (cancelled?.asBoolean == true) return context.getString(R.string.user_apps_download_failed)
+        return installEmulators(context, release, cancelled, listener, "/usr/local/bin/droiddeck-krkr2-install",
+            listOf("install-release", "--version", release.version, "--url", release.url, "--sha256", release.sha256), run)
+    }
+
+    private fun installEmulators(
+        context: Context, entry: Entry, cancelled: Downloader.Cancellation?,
+        listener: LinuxRuntimeInstaller.ProgressListener?, script: String = EMULATORS_SCRIPT,
+        arguments: List<String> = listOf("install"),
+        run: (List<String>, AtomicBoolean, (String) -> Unit) -> Int = { argv, stop, onLine ->
+            GuestCommand.run(context, argv, logName = entry.id, cancelled = stop, onLine = onLine)
+        },
+    ): String? {
         val release = RuntimeInstallService.holdForPackage(context, context.getString(R.string.deskpkg_installing, entry.name))
         val stop = java.util.concurrent.atomic.AtomicBoolean(false)
         val finished = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -290,8 +344,7 @@ object DesktopCatalog {
         }
         try {
             var failure: String? = null
-            val status = GuestCommand.run(context, listOf("/bin/bash", script, "install"), logName = entry.id,
-                cancelled = stop) { line ->
+            val status = run(listOf("/bin/bash", script) + arguments, stop) { line ->
                 when {
                     line.startsWith("== STEP ") -> {
                         val stage = context.getString(R.string.deskpkg_installing, line.removePrefix("== STEP "))
@@ -301,7 +354,7 @@ object DesktopCatalog {
                     line.startsWith("== FAIL ") -> failure = line.removePrefix("== FAIL ")
                 }
             }
-            if (stop.get()) return context.getString(R.string.user_apps_download_failed)
+            if (stop.get() || cancelled?.asBoolean == true) return context.getString(R.string.user_apps_download_failed)
             if (failure != null || status != 0) return context.getString(R.string.deskpkg_install_failed)
             check(FileUtils.writeString(marker(context, entry.id), entry.version)) { "Could not finish package installation" }
             return null

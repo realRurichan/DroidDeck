@@ -22,12 +22,19 @@ its file browser. The engine is independent of RetroArch and needs no libretro
 core. Compatibility depends on the game and its required plugins; Windows DLLs
 are not automatically usable as native ARM64 plugins.
 
-The installer downloads a pinned prebuilt ARM64 engine (about 40 MB), verifies
+The installer downloads the current prebuilt ARM64 engine (about 40 MB), verifies
 its SHA-256, extracts it and checks `--help` before replacing an existing engine.
 Only missing runtime libraries are installed with apt; no compiler or vcpkg
 build runs on the phone. A failed download, checksum or engine check leaves
 the previous installation intact. It requires the Ubuntu ARM64 runtime and a
-network connection. The package URL and checksum are in `binary.env`.
+network connection. Before every install or reinstall, the APK fetches
+[`krkr2-channel/krkr2.json`](https://github.com/realRurichan/DroidDeck/releases/download/krkr2-channel/krkr2.json)
+and passes its version, package URL and checksum to the installer. An unavailable
+or invalid manifest stops installation without replacing the current engine;
+there is no bundled download fallback. The installed version is recorded in
+`/opt/krkr2/.engine-version` and the runtime's `.droiddeck-pkg-krkr2` marker.
+The `install-release` command is rejected by older installer scripts, so a
+failed script refresh cannot silently invoke the old bundled download.
 
 The engine and resources are installed under `/opt/krkr2`. Removing Krkr2 deletes
 that installation and its marker, leaving the ROM directory and game saves
@@ -39,10 +46,10 @@ commit `03aa34b212063624dce52f9a76d22c5ffd5801e0` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/atri-kirikiroid-compat).
 The standalone engine package is released as
 [`krkr2-linux-arm64-03aa34b-r1`](https://github.com/realRurichan/DroidDeck/releases/tag/krkr2-linux-arm64-03aa34b-r1).
-The recipe download pin and catalog label target that package; no engine is
-embedded in the APK. Existing APKs retain their bundled download pin, so their
-Install/Reinstall action still fetches the older package. An independently
-updated `/opt/krkr2` runs without replacing the APK.
+The independent release channel currently targets that package; no engine is
+embedded in the APK. Older APKs need one downloader update to stop using their
+bundled package pin. After that update, publishing an engine only requires
+updating the channel manifest; the APK does not need to be rebuilt.
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
 engine's static library cycles. Engine changes live in the contribution branch;
@@ -50,6 +57,22 @@ the packaging recipe only carries the Cocos ARM64 packaging changes.
 The fixes are submitted in [upstream PR #54](https://github.com/2468785842/krkr2/pull/54).
 The additional text decoding and parser error fixes are ready for review in
 [upstream PR #56](https://github.com/2468785842/krkr2/pull/56).
+
+To publish an engine update, first upload and verify its archive in a release
+tagged `krkr2-linux-arm64-VERSION`, with asset name `krkr2-linux-arm64.tar.gz`.
+Update `tools/krkr2/krkr2.json` with that version, URL, SHA-256 and byte size,
+then replace the channel asset:
+
+```sh
+gh release upload krkr2-channel tools/krkr2/krkr2.json --clobber \
+  --repo realRurichan/DroidDeck
+```
+
+Verify the public channel URL after uploading. The app resolves the manifest
+again when installation starts, so an already-open catalog does not pin a
+previous release. Keep released engine archives available for downloads already
+in progress. A temporary missing channel asset during replacement causes an
+installation error and leaves the existing engine intact.
 
 The engine fixes optimized TJS empty-string accesses, Linux save directory
 creation, deletion of missing save files, and Blend2D font-buffer ownership.

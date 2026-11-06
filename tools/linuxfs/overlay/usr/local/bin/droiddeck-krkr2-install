@@ -1,10 +1,27 @@
 #!/bin/bash
 set -euo pipefail
-[[ "${1:-}" == install ]] || { echo 'usage: droiddeck-krkr2-install install' >&2; exit 2; }
+invalid() { echo '== FAIL Invalid Krkr2 release details' >&2; exit 2; }
+[[ "${1:-}" == install-release ]] || invalid
+shift
+version=''
+url=''
+checksum=''
+while (($#)); do
+    (($# >= 2)) || invalid
+    case "$1" in
+        --version) [[ -z "$version" && -n "$2" ]] || invalid; version=$2 ;;
+        --url) [[ -z "$url" && -n "$2" ]] || invalid; url=$2 ;;
+        --sha256) [[ -z "$checksum" && -n "$2" ]] || invalid; checksum=$2 ;;
+        *) invalid ;;
+    esac
+    shift 2
+done
+[[ "$version" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]] || invalid
+[[ "$checksum" =~ ^[0-9a-fA-F]{64}$ ]] || invalid
+[[ "$url" == "https://github.com/realRurichan/DroidDeck/releases/download/krkr2-linux-arm64-$version/krkr2-linux-arm64.tar.gz" ]] || invalid
 [[ "$(uname -m)" == aarch64 ]] || { echo '== FAIL Krkr2 requires ARM64'; exit 1; }
 command -v apt-get >/dev/null || { echo '== FAIL Krkr2 requires the Ubuntu runtime'; exit 1; }
 recipe=/usr/local/lib/droiddeck-krkr2
-. "$recipe/binary.env"
 target=/opt/krkr2
 work=$(mktemp -d /root/.krkr2-install.XXXXXX)
 cleanup() {
@@ -34,17 +51,19 @@ if ((${#missing[@]})); then
 fi
 
 echo '== STEP Download Krkr2 ARM64 engine'
-curl --fail --location --retry 3 --connect-timeout 20 --speed-limit 1024 --speed-time 60 \
-    --output "$work/engine.tar.gz" "$KRKR2_BINARY_URL"
+curl --fail --location --proto '=https' --proto-redir '=https' --retry 3 --connect-timeout 20 --speed-limit 1024 --speed-time 60 \
+    --output "$work/engine.tar.gz" "$url"
 echo '== STEP Verify Krkr2 download'
-printf '%s  %s\n' "$KRKR2_BINARY_SHA256" "$work/engine.tar.gz" | sha256sum --check -
+printf '%s  %s\n' "$checksum" "$work/engine.tar.gz" | sha256sum --check -
 mkdir "$work/package"
 tar -xzf "$work/engine.tar.gz" --no-same-owner -C "$work/package"
 test -x "$work/package/krkr2"
 echo '== STEP Check Krkr2 engine'
 (cd "$work/package" && ./krkr2 --help)
+printf '%s\n' "$version" > "$work/package/.engine-version"
 
 echo '== STEP Install Krkr2'
 mkdir -p "$(dirname "$target")"
 if [[ -e "$target" ]]; then mv "$target" "$work/previous"; fi
 mv "$work/package" "$target"
+printf '== INSTALLED krkr2 %s\n' "$version"

@@ -1223,6 +1223,7 @@
     <string name="content_retroarch_roms">在 RetroArch 中浏览到 /root/ROMs。</string>
     <string name="content_add_roms">把 %1$s 游戏添加到 ROMs/%2$s。</string>
     <string name="content_install_named">安装 %1$s</string>
+    <string name="content_reinstall_engine">重新安装引擎</string>
     <string name="content_stop_to_install">停止会话后才能安装</string>
     <string name="content_runtime_required">需要运行时</string>
     <string name="content_loading_details">正在加载安装详情…</string>

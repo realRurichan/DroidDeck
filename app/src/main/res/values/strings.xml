@@ -1279,6 +1279,7 @@
     <string name="content_retroarch_roms">Browse to /root/ROMs in RetroArch.</string>
     <string name="content_add_roms">Add %1$s games to ROMs/%2$s.</string>
     <string name="content_install_named">Install %1$s</string>
+    <string name="content_reinstall_engine">Reinstall engine</string>
     <string name="content_stop_to_install">Stop session to install</string>
     <string name="content_runtime_required">Runtime required</string>
     <string name="content_loading_details">Loading install details…</string>

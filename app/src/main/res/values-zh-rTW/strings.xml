@@ -1139,6 +1139,7 @@
     <string name="content_retroarch_roms">在 RetroArch 中瀏覽到 /root/ROMs。</string>
     <string name="content_add_roms">將 %1$s 遊戲加入 ROMs/%2$s。</string>
     <string name="content_install_named">安裝 %1$s</string>
+    <string name="content_reinstall_engine">重新安裝引擎</string>
     <string name="content_stop_to_install">停止工作階段後安裝</string>
     <string name="content_runtime_required">需要執行環境</string>
     <string name="content_loading_details">正在載入安裝詳細資料…</string>
