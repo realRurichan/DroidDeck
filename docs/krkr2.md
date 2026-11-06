@@ -37,8 +37,12 @@ Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
 commit `03aa34b212063624dce52f9a76d22c5ffd5801e0` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/atri-kirikiroid-compat).
-The phone's installed engine and the `binary.env` installer pin remain at
-`72932a4` until a verified release is published.
+The standalone engine package is released as
+[`krkr2-linux-arm64-03aa34b-r1`](https://github.com/realRurichan/DroidDeck/releases/tag/krkr2-linux-arm64-03aa34b-r1).
+The recipe download pin and catalog label target that package; no engine is
+embedded in the APK. Existing APKs retain their bundled download pin, so their
+Install/Reinstall action still fetches the older package. An independently
+updated `/opt/krkr2` runs without replacing the APK.
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
 engine's static library cycles. Engine changes live in the contribution branch;
@@ -121,14 +125,17 @@ matching debug symbols are retained for crash diagnosis.
 These checks do not replace gameplay testing in DroidDeck on a phone and are
 not part of the mandatory APK build.
 
-[ARM64 CI run 42152474926](https://github.com/realRurichan/DroidDeck/actions/runs/42152474926)
-passed all six CTests plus directory and XP3 launch checks for source `ed06690`.
-The tested executable SHA-256 is
-`e4a8e24869c6da6b060e8d1263e90522d9333d10119ee9df2f54f1615ce3cecd`.
-In an isolated Android test directory, the same executable passed all 41
-TextStream checks and 12 parser checks plus four file/line diagnostic checks,
-with normal exit. ATRI progressed beyond its original startup crash and reached
-a later regular-expression error. The current source pin adds a general RegExp compatibility fix and the
-seventh CTest, `regexp-compat-runtime`. It changes no game files or game-specific
-flags. The six passing tests above do not cover this new change; its ARM64 build
-and unmodified-game verification are pending. ATRI playability has not been established.
+[ARM64 CI run 42158953991](https://github.com/realRurichan/DroidDeck/actions/runs/42158953991)
+passed all seven CTests plus directory and XP3 launch checks for source `03aa34b`.
+The released archive SHA-256 is
+`5a9831c55840f981554a29b93799b0db999c538e1c98d18bf4a7629a5fe0e976`;
+the executable SHA-256 is
+`83b5513c63a1af46bd701ae5814230f247e78e6b1716446cfbb17c96b7864ca0`.
+The same executable passed 41 TextStream checks, 12 parser checks plus four
+file/line diagnostics, and 30 RegExp checks on Android 15/ARM64, all with normal
+exit. The unmodified ATRI copy reached its complete title menu during a
+90-second observation. The independent engine was then installed with a full
+backup, and the normal DroidDeck launch reached story scenes with advancing
+text after input. Original data.xp3 and patch.tjs hashes remained unchanged;
+no AfterStartup hook or game-specific runtime flag was added. Full story,
+audio and save/load compatibility have not been verified.

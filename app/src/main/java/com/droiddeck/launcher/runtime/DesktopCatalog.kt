@@ -28,7 +28,7 @@ object DesktopCatalog {
     )
 
     fun krkr2Entry() = Entry(
-        "krkr2", "Krkr2", 1, "72932a4-r2", "krkr2", "", "", 0L,
+        "krkr2", "Krkr2", 1, "03aa34b-r1", "krkr2", "", "", 0L,
         "", "applications-games", "Game",
     )
 
