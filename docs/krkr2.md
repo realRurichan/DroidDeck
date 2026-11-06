@@ -35,8 +35,9 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `72932a464b7a7e12c73354f9c1d424cafcaa8ac0` in
-[realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/psbfile-linux-launch).
+commit `e4912634009319660fec00399882047f54a15bab` in
+[realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/atri-kirikiroid-compat).
+The prebuilt installer pin remains at `72932a4` until a verified release is published.
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
 engine's static library cycles. Engine changes live in the contribution branch;
