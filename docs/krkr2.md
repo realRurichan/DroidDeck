@@ -35,7 +35,7 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `8dd33cf46cd95b1222adefa6622bbd865bdf65ca` in
+commit `03aa34b212063624dce52f9a76d22c5ffd5801e0` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/atri-kirikiroid-compat).
 The phone's installed engine and the `binary.env` installer pin remain at
 `72932a4` until a verified release is published.
@@ -114,7 +114,7 @@ synthetic XP3 regression checks archive-root lookup, empty strings, binary saves
 and deletion. `textstream-runtime` and `parser-error-runtime` run the engine's
 generated script fixtures under Xvfb. They check text decoding through TJS and
 that script compilation errors are reported without executing invalid scripts
-or crashing the engine. `regexp-compat-runtime` adds 28 synthetic checks for
+or crashing the engine. `regexp-compat-runtime` adds 30 synthetic checks for
 legacy Unicode hexadecimal escapes, existing regular-expression syntax and
 error recovery across all compilation entry points. CTest output is retained with failure logs. Separate
 matching debug symbols are retained for crash diagnosis.
