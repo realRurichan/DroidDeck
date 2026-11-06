@@ -35,7 +35,7 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `6d094086726725fb9c3d1f8dbb594a00590350fc` in
+commit `ed0669003611fd7cbc7b69d527ecff923a461b43` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/atri-kirikiroid-compat).
 The prebuilt installer pin remains at `72932a4` until a verified release is published.
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
