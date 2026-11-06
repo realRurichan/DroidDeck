@@ -35,16 +35,17 @@ untouched. The runtime installation log is `logs/tools/krkr2.log`.
 
 Source: [2468785842/krkr2](https://github.com/2468785842/krkr2), based on dev
 `3dcfb29aa8a7ed47981e1037db4b549dc310216a`. The recipe currently pins contribution
-commit `ed0669003611fd7cbc7b69d527ecff923a461b43` in
+commit `8dd33cf46cd95b1222adefa6622bbd865bdf65ca` in
 [realRurichan/krkr2](https://github.com/realRurichan/krkr2/tree/fix/atri-kirikiroid-compat).
-The prebuilt installer pin remains at `72932a4` until a verified release is published.
+The phone's installed engine and the `binary.env` installer pin remain at
+`72932a4` until a verified release is published.
 It preserves the desktop `--game` / `--xp3` interface, pins vcpkg, omits Cocos'
 unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
 engine's static library cycles. Engine changes live in the contribution branch;
 the packaging recipe only carries the Cocos ARM64 packaging changes.
 The fixes are submitted in [upstream PR #54](https://github.com/2468785842/krkr2/pull/54).
-The additional text decoding and parser error fixes are proposed separately in
-[upstream draft PR #56](https://github.com/2468785842/krkr2/pull/56).
+The additional text decoding and parser error fixes are ready for review in
+[upstream PR #56](https://github.com/2468785842/krkr2/pull/56).
 
 The engine fixes optimized TJS empty-string accesses, Linux save directory
 creation, deletion of missing save files, and Blend2D font-buffer ownership.
@@ -113,7 +114,21 @@ synthetic XP3 regression checks archive-root lookup, empty strings, binary saves
 and deletion. `textstream-runtime` and `parser-error-runtime` run the engine's
 generated script fixtures under Xvfb. They check text decoding through TJS and
 that script compilation errors are reported without executing invalid scripts
-or crashing the engine. CTest output is retained with failure logs. Separate
+or crashing the engine. `regexp-compat-runtime` adds 28 synthetic checks for
+legacy Unicode hexadecimal escapes, existing regular-expression syntax and
+error recovery across all compilation entry points. CTest output is retained with failure logs. Separate
 matching debug symbols are retained for crash diagnosis.
 These checks do not replace gameplay testing in DroidDeck on a phone and are
 not part of the mandatory APK build.
+
+[ARM64 CI run 42152474926](https://github.com/realRurichan/DroidDeck/actions/runs/42152474926)
+passed all six CTests plus directory and XP3 launch checks for source `ed06690`.
+The tested executable SHA-256 is
+`e4a8e24869c6da6b060e8d1263e90522d9333d10119ee9df2f54f1615ce3cecd`.
+In an isolated Android test directory, the same executable passed all 41
+TextStream checks and 12 parser checks plus four file/line diagnostic checks,
+with normal exit. ATRI progressed beyond its original startup crash and reached
+a later regular-expression error. The current source pin adds a general RegExp compatibility fix and the
+seventh CTest, `regexp-compat-runtime`. It changes no game files or game-specific
+flags. The six passing tests above do not cover this new change; its ARM64 build
+and unmodified-game verification are pending. ATRI playability has not been established.

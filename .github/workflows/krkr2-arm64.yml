@@ -43,9 +43,9 @@ jobs:
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" --show-only=json-v1 > "$RUNNER_TEMP/krkr2-test-list.json"
-          python3 -c 'import json, sys; names = {test["name"] for test in json.load(open(sys.argv[1]))["tests"]}; missing = {"textstream-runtime", "parser-error-runtime"} - names; sys.exit("Missing script regression tests: " + ", ".join(sorted(missing)) if missing else 0)' "$RUNNER_TEMP/krkr2-test-list.json"
-          "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -N -R '^(psbfile|layer-alpha|x11-keyboard|x11-controller-focus|textstream|parser-error)-runtime$'
-          xvfb-run -a "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -R '^(psbfile|layer-alpha|x11-keyboard|x11-controller-focus|textstream|parser-error)-runtime$' --output-on-failure --no-tests=error
+          python3 -c 'import json, sys; names = {test["name"] for test in json.load(open(sys.argv[1]))["tests"]}; missing = {"psbfile-runtime", "layer-alpha-runtime", "x11-keyboard-runtime", "x11-controller-focus-runtime", "textstream-runtime", "parser-error-runtime", "regexp-compat-runtime"} - names; sys.exit("Missing runtime regression tests: " + ", ".join(sorted(missing)) if missing else 0)' "$RUNNER_TEMP/krkr2-test-list.json"
+          "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -N -R '^(psbfile|layer-alpha|x11-keyboard|x11-controller-focus|textstream|parser-error|regexp-compat)-runtime$'
+          xvfb-run -a "$RUNNER_TEMP/krkr2-build/tools/bin/ctest" --test-dir "$RUNNER_TEMP/krkr2-build/build" -R '^(psbfile|layer-alpha|x11-keyboard|x11-controller-focus|textstream|parser-error|regexp-compat)-runtime$' --output-on-failure --no-tests=error
           game="$RUNNER_TEMP/游戏 'launch test'"
           mkdir -p "$game"
           printf '%s\n' 'Debug.message("DROIDDECK_KRKR2_SMOKE_OK");' 'System.exit();' > "$game/startup.tjs"
