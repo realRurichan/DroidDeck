@@ -17,7 +17,7 @@ class OnscripterGamesTest {
     @Test fun recognizesEverySupportedScriptAndKeepsUnicodeTitles() {
         val names = listOf("0.txt", "00.txt", "nscr_sec.dat", "nscript.___", "nscript.dat", "onscript.nt2", "onscript.nt3")
         val entries = names.mapIndexed { i, name -> file("ons/游戏 $i/$name") }
-        assertEquals(entries, OnscripterGames.scan(temp.root))
+        assertEquals(entries.sortedBy { it.path }, OnscripterGames.scan(temp.root).sortedBy { it.path })
     }
 
     @Test fun listsEachGameOnceAndDoesNotScanItsAssetFolders() {

@@ -31,6 +31,7 @@ class SessionGestureRoutingTest {
     private lateinit var activity: SessionActivity
     private lateinit var gestures: TouchscreenGestures
     private lateinit var steamTap: ThreeFingerTap
+    private lateinit var padMouse: PadMouse
     private lateinit var launcherScroll: ScrollTouchGestures
     private lateinit var directHold: DirectTouchHold
     private val keys = mutableListOf<Pair<Int, Boolean>>()
@@ -43,6 +44,7 @@ class SessionGestureRoutingTest {
         if (::gestures.isInitialized) gestures.cancel()
         if (::launcherScroll.isInitialized) launcherScroll.cancel()
         if (::directHold.isInitialized) directHold.cancel()
+        if (::padMouse.isInitialized) padMouse.reset()
         SessionState.mode = SessionService.MODE_STEAM
         SessionState.steamUi = null
         SessionState.suspended = false
@@ -89,6 +91,22 @@ class SessionGestureRoutingTest {
         assertEquals(listOf(400f to 300f), scrollPositions)
         assertTrue(scrollDeltas.isNotEmpty())
         assertTrue(keys.isEmpty())
+        assertFalse(steamTap.active)
+    }
+
+    @Test fun directModeKeepsKrkr2TouchesOutOfLauncherScrolling() {
+        prepare(SessionPrefs.TOUCH_DIRECT)
+        SessionState.mode = SessionService.MODE_RUN
+        padMouse.setKrkr2(true)
+        setField("padMouseOn", true)
+        val down = SystemClock.uptimeMillis()
+        for ((index, action) in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP).withIndex()) {
+            val event = MotionEvent.obtain(down, down + index * 32L, action, 400f, if (index == 0) 300f else 200f, 0)
+            try { assertTrue(activity.onTouchEvent(event)) } finally { event.recycle() }
+        }
+        assertTrue(scrollPositions.isEmpty())
+        assertTrue(scrollDeltas.isEmpty())
+        assertFalse(ReflectionHelpers.getField<Boolean>(activity, "scrollTouchGesture"))
         assertFalse(steamTap.active)
     }
 
@@ -195,6 +213,8 @@ class SessionGestureRoutingTest {
         SessionState.steamUi = "bigpicture"
         SessionState.suspended = false
         activity = Robolectric.buildActivity(SessionActivity::class.java).get()
+        padMouse = PadMouse(ReflectionHelpers.getField<PadMouse.Listener>(activity, "padMouseListener"))
+        setField("padMouse", padMouse)
         steamTap = ThreeFingerTap(8f)
         gestures = TouchscreenGestures(8f, object : TouchscreenGestures.Output {
             override fun moveTo(x: Float, y: Float) {}
