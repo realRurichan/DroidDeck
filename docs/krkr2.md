@@ -43,6 +43,8 @@ unused x86-only FMOD backend, and retains Krkr2's OpenAL mixer. LLD resolves the
 engine's static library cycles. Engine changes live in the contribution branch;
 the packaging recipe only carries the Cocos ARM64 packaging changes.
 The fixes are submitted in [upstream PR #54](https://github.com/2468785842/krkr2/pull/54).
+The additional text decoding and parser error fixes are proposed separately in
+[upstream draft PR #56](https://github.com/2468785842/krkr2/pull/56).
 
 The engine fixes optimized TJS empty-string accesses, Linux save directory
 creation, deletion of missing save files, and Blend2D font-buffer ownership.
